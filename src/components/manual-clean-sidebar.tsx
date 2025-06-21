@@ -34,16 +34,16 @@ export function ManualCleanSidebar({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wand2 className="h-6 w-6" />
-          <span>Manual Clean Options</span>
+          <span>Preprocessing Pipeline</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <Accordion type="multiple" className="w-full" defaultValue={['item-1']}>
           <AccordionItem value="item-1">
-            <AccordionTrigger>Step 1: Select Columns</AccordionTrigger>
+            <AccordionTrigger>Step 1: Column Selection</AccordionTrigger>
             <AccordionContent className="space-y-3 max-h-60 overflow-y-auto p-1">
               <p className="text-sm text-muted-foreground">
-                Choose columns to keep in your dataset.
+                Deselect columns to exclude them from the dataset.
               </p>
               {allColumns.map((col) => (
                 <div key={col} className="flex items-center space-x-2">
@@ -56,26 +56,29 @@ export function ManualCleanSidebar({
           
           {columnsWithMissingValues.length > 0 && (
             <AccordionItem value="item-2">
-              <AccordionTrigger>Step 2: Handle Missing Values</AccordionTrigger>
+              <AccordionTrigger>Step 2: Missing Value Imputation</AccordionTrigger>
               <AccordionContent className="space-y-4">
+                 <p className="text-sm text-muted-foreground mb-2">
+                    Choose a strategy to handle empty or null values.
+                 </p>
                 {columnsWithMissingValues.map((col) => (
                   <div key={`missing-${col.name}`} className="space-y-2">
                     <Label>{col.name}</Label>
                     <Select defaultValue={col.type === 'numeric' ? 'mean' : 'mode'}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select method" />
+                        <SelectValue placeholder="Select imputation strategy" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="remove">Remove Row</SelectItem>
+                        <SelectItem value="remove">Remove Rows</SelectItem>
                         {col.type === 'numeric' ? (
                           <>
-                            <SelectItem value="mean">Fill with Mean</SelectItem>
-                            <SelectItem value="median">Fill with Median</SelectItem>
+                            <SelectItem value="mean">Impute with Mean</SelectItem>
+                            <SelectItem value="median">Impute with Median</SelectItem>
                           </>
                         ) : (
                           <>
-                             <SelectItem value="mode">Fill with Mode</SelectItem>
-                             <SelectItem value="constant">Fill with Constant</SelectItem>
+                             <SelectItem value="mode">Impute with Mode</SelectItem>
+                             <SelectItem value="constant">Impute with Constant</SelectItem>
                           </>
                         )}
                       </SelectContent>
@@ -86,12 +89,31 @@ export function ManualCleanSidebar({
             </AccordionItem>
           )}
 
+          <AccordionItem value="item-3">
+            <AccordionTrigger>Step 3: Outlier Handling</AccordionTrigger>
+            <AccordionContent>
+               <p className="text-sm text-muted-foreground mb-2">
+                Select a method to manage extreme values.
+              </p>
+              <Select defaultValue="none">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="iqr">Remove using IQR</SelectItem>
+                    <SelectItem value="zscore">Remove using Z-score</SelectItem>
+                  </SelectContent>
+                </Select>
+            </AccordionContent>
+          </AccordionItem>
+
           {categoricalColumns.length > 0 && (
-            <AccordionItem value="item-3">
-              <AccordionTrigger>Step 3: Encode Categorical</AccordionTrigger>
+            <AccordionItem value="item-4">
+              <AccordionTrigger>Step 4: Categorical Data Encoding</AccordionTrigger>
               <AccordionContent className="space-y-4">
                  <p className="text-sm text-muted-foreground mb-2">
-                    Convert text categories to numbers.
+                    Convert text categories to numerical representations.
                  </p>
                 {categoricalColumns.map((col) => (
                     <div key={`cat-${col}`} className="space-y-2">
@@ -112,20 +134,21 @@ export function ManualCleanSidebar({
           )}
           
           {numericColumns.length > 0 && (
-            <AccordionItem value="item-4">
-                <AccordionTrigger>Step 4: Feature Scaling</AccordionTrigger>
+            <AccordionItem value="item-5">
+                <AccordionTrigger>Step 5: Numerical Feature Scaling</AccordionTrigger>
                 <AccordionContent className="space-y-4">
                 <p className="text-sm text-muted-foreground mb-2">
-                    Scale numerical features to a similar range.
+                    Normalize the range of numerical features.
                 </p>
                 {numericColumns.map((col) => (
                     <div key={`scale-${col}`} className="space-y-2">
                         <Label>{col}</Label>
-                        <Select defaultValue="standard">
+                        <Select defaultValue="none">
                         <SelectTrigger>
                             <SelectValue placeholder="Select scaling" />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
                             <SelectItem value="standard">Standard Scaler</SelectItem>
                             <SelectItem value="minmax">Min-Max Scaler</SelectItem>
                         </SelectContent>
@@ -135,24 +158,6 @@ export function ManualCleanSidebar({
                 </AccordionContent>
             </AccordionItem>
           )}
-
-          <AccordionItem value="item-5">
-            <AccordionTrigger>Step 5: Outlier Detection</AccordionTrigger>
-            <AccordionContent>
-               <p className="text-sm text-muted-foreground mb-2">
-                Identify and handle extreme values.
-              </p>
-              <Select defaultValue="iqr">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="iqr">Remove using IQR</SelectItem>
-                    <SelectItem value="zscore">Remove using Z-score</SelectItem>
-                  </SelectContent>
-                </Select>
-            </AccordionContent>
-          </AccordionItem>
         </Accordion>
       </CardContent>
     </Card>
