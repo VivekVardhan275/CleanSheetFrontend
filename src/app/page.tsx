@@ -11,7 +11,7 @@ import { useData } from '@/context/data-context';
 export default function Home() {
   const router = useRouter();
   const { toast } = useToast();
-  const { loadData, isLoading, resetData } = useData();
+  const { loadData, isLoading, resetData, data } = useData();
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -21,7 +21,8 @@ export default function Home() {
   }, [resetData]);
 
   const handleProcess = () => {
-    if (!file && url.trim() === '') {
+    const source = file || url;
+    if (!source) {
       toast({
         variant: 'destructive',
         title: 'No Data Source',
@@ -31,14 +32,19 @@ export default function Home() {
     }
 
     setIsProcessing(true);
-    loadData();
+    loadData(source);
   };
 
   useEffect(() => {
-      if (isProcessing && !isLoading) {
-          router.push('/clean');
-      }
-  }, [isLoading, isProcessing, router]);
+    // Navigate when processing is initiated and data has been loaded (isLoading becomes false)
+    if (isProcessing && !isLoading && data.length > 0) {
+      router.push('/clean');
+    }
+    // If processing stops for any other reason (e.g. error), reset the button
+    else if (!isLoading) {
+        setIsProcessing(false);
+    }
+  }, [isLoading, isProcessing, data, router]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">

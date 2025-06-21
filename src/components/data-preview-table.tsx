@@ -22,8 +22,6 @@ export function DataPreviewTable({ data = [], headers = [] }: DataPreviewTablePr
       )
   }
 
-  const dataKeys = headers.map(h => h.toLowerCase());
-
   return (
     <ScrollArea className="h-full w-full rounded-md border">
       <Table>
@@ -36,10 +34,10 @@ export function DataPreviewTable({ data = [], headers = [] }: DataPreviewTablePr
         </TableHeader>
         <TableBody>
           {data.map((row, rowIndex) => (
-            <TableRow key={row.id ?? rowIndex}>
-              {dataKeys.map((key) => (
-                <TableCell key={`${key}-${row.id ?? rowIndex}`}>
-                  {row[key] ?? 'N/A'}
+            <TableRow key={`row-${rowIndex}`}>
+              {headers.map((header) => (
+                <TableCell key={`${header}-${rowIndex}`}>
+                  {String(row[header] ?? 'N/A')}
                 </TableCell>
               ))}
             </TableRow>

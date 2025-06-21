@@ -8,33 +8,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-
-// Mock data to simulate a loaded dataset
-const MOCK_DATA = [
-  { id: 1, name: 'John Doe', age: 28, city: 'New York', occupation: 'Engineer' },
-  { id: 2, name: 'Jane Smith', age: 34, city: 'London', occupation: 'Designer' },
-  { id: 3, name: 'Sam Wilson', age: null, city: 'Tokyo', occupation: 'Developer' },
-  { id: 4, name: 'Alice Johnson', age: 45, city: 'Sydney', occupation: 'Manager' },
-  { id: 5, name: 'Bob Brown', age: 23, city: 'Paris', occupation: null },
-  { id: 6, name: 'Charlie Black', age: 34, city: 'New York', occupation: 'Engineer' },
-  { id: 7, name: 'Diana Prince', age: 29, city: 'London', occupation: 'Artist' },
-  { id: 8, name: 'Peter Parker', age: 22, city: 'New York', occupation: 'Photographer' },
-  { id: 9, 'name': 'Bruce Wayne', age: 40, city: 'Gotham', occupation: 'CEO' },
-  { id: 10, name: 'Clark Kent', age: 35, city: 'Metropolis', occupation: 'Journalist' },
-];
-
-const MOCK_HEADERS = ['ID', 'Name', 'Age', 'City', 'Occupation'];
-
-const MOCK_DATA_SCHEMA = {
-  allColumns: ['ID', 'Name', 'Age', 'City', 'Occupation'],
-  numericColumns: ['Age'],
-  categoricalColumns: ['City', 'Occupation'],
-  columnsWithMissingValues: [
-    { name: 'Age', type: 'numeric' as const },
-    { name: 'Occupation', type: 'categorical' as const },
-  ],
-};
-
+import Papa from 'papaparse';
 
 type DataSchema = {
     allColumns: string[];
@@ -47,10 +21,60 @@ interface DataContextType {
   data: Record<string, any>[];
   headers: string[];
   schema: DataSchema | null;
-  loadData: () => void;
+  loadData: (source: File | string) => void;
   isLoading: boolean;
   resetData: () => void;
 }
+
+const generateSchema = (data: Record<string, any>[], headers: string[]): DataSchema => {
+    if (!data.length || !headers.length) {
+        return {
+            allColumns: [],
+            numericColumns: [],
+            categoricalColumns: [],
+            columnsWithMissingValues: [],
+        };
+    }
+    
+    const allColumns = headers;
+    const numericColumnSet = new Set<string>();
+    const categoricalColumnSet = new Set<string>(headers);
+    const columnsWithMissingValuesSet = new Set<string>();
+    const sample = data.slice(0, 100);
+
+    for (const header of headers) {
+        const isNumeric = sample.every(row => {
+            const value = row[header];
+            return value === null || value === '' || value === undefined || !isNaN(Number(value));
+        });
+        
+        if (isNumeric && sample.some(r => r[header] !== null && r[header] !== '' && r[header] !== undefined)) {
+            numericColumnSet.add(header);
+            categoricalColumnSet.delete(header);
+        }
+    }
+
+    for (const row of data) {
+        for (const header of headers) {
+            const value = row[header];
+            if (value === null || value === undefined || value === '') {
+                columnsWithMissingValuesSet.add(header);
+            }
+        }
+    }
+
+    const columnsWithMissingValues = Array.from(columnsWithMissingValuesSet).map(name => ({
+        name,
+        type: numericColumnSet.has(name) ? 'numeric' as const : 'categorical' as const,
+    }));
+
+    return {
+        allColumns,
+        numericColumns: Array.from(numericColumnSet),
+        categoricalColumns: Array.from(categoricalColumnSet),
+        columnsWithMissingValues,
+    };
+};
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -60,23 +84,45 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [schema, setSchema] = useState<DataSchema | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadData = useCallback(() => {
-    // In a real app, this would involve fetching and parsing the file/URL.
-    // For now, we simulate this process with mock data.
-    setIsLoading(true);
-    setTimeout(() => {
-        setData(MOCK_DATA);
-        setHeaders(MOCK_HEADERS);
-        setSchema(MOCK_DATA_SCHEMA);
-        setIsLoading(false);
-    }, 1000); // Simulate network/parsing delay
-  }, []);
-
   const resetData = useCallback(() => {
     setData([]);
     setHeaders([]);
     setSchema(null);
+    setIsLoading(false);
   }, []);
+
+  const loadData = useCallback((source: File | string) => {
+    setIsLoading(true);
+
+    Papa.parse(source, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        download: typeof source === 'string',
+        complete: (results) => {
+            if (results.errors.length) {
+                console.error('Parsing errors:', results.errors);
+                resetData();
+                return;
+            }
+
+            const parsedHeaders = results.meta.fields || [];
+            const parsedData = (results.data as Record<string, any>[]).filter(row => 
+                Object.values(row).some(val => val !== null && val !== '')
+            );
+
+            setData(parsedData);
+            setHeaders(parsedHeaders);
+            const generatedSchema = generateSchema(parsedData, parsedHeaders);
+            setSchema(generatedSchema);
+            setIsLoading(false);
+        },
+        error: (error: any) => {
+            console.error('PapaParse error:', error);
+            resetData();
+        }
+    });
+  }, [resetData]);
 
   const value = useMemo(() => ({
     data,
