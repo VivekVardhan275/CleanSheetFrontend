@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from './icons';
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   return (
@@ -9,6 +10,9 @@ export function Header() {
           <Logo className="h-6 w-6" />
           <span className="font-bold inline-block">DataCleanr</span>
         </Link>
+        <div className="flex flex-1 items-center justify-end">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
