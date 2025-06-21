@@ -10,12 +10,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
-export const EdaInputSchema = z.object({
+const EdaInputSchema = z.object({
   jsonData: z.string().describe('The dataset in JSON format (array of objects).'),
 });
 export type EdaInput = z.infer<typeof EdaInputSchema>;
 
-export const EdaResultSchema = z.object({
+const EdaResultSchema = z.object({
   dataTypeDistribution: z.array(z.object({
     name: z.string().describe('The data type (e.g., Numeric, Categorical)'),
     value: z.number().describe('The count of columns of this type'),
