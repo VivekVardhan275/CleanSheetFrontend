@@ -8,7 +8,7 @@ export function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <Logo className="h-6 w-6" />
-          <span className="font-bold inline-block">DataCleanr</span>
+          <span className="font-bold inline-block">DataPrep Pro</span>
         </Link>
         <ThemeToggle />
       </div>

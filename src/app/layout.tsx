@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { DataProvider } from '@/context/data-context';
 
 export const metadata: Metadata = {
-  title: 'DataCleanr',
+  title: 'DataPrep Pro',
   description: 'Clean, analyze, and transform your data with ease.',
 };
 
