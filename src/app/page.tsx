@@ -51,7 +51,7 @@ export default function Home() {
       <div className="w-full max-w-2xl mx-auto text-center">
         <div className="mb-8 animate-in fade-in-0 slide-in-from-top-12 duration-500">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
-            Welcome to DataPrep Pro
+            Welcome to CleanSheet
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
             The intelligent tool to clean, preprocess, and analyze your datasets
