@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Download, FileText, BarChart, RefreshCw, ArrowRight } from 'lucide-react';
+import { Download, FileText, BarChart, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DownloadPage() {
@@ -39,13 +39,13 @@ export default function DownloadPage() {
               <CardTitle>EDA Report</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>View a comprehensive report of the exploratory data analysis and download it as a PDF.</CardDescription>
+              <CardDescription>Download a comprehensive PDF report of the exploratory data analysis.</CardDescription>
             </CardContent>
             <CardFooter>
                <Link href="/dashboard" className="w-full">
                  <Button className="w-full">
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    View & Download Report
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Report
                 </Button>
                </Link>
             </CardFooter>
