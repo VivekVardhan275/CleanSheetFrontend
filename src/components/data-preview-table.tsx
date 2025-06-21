@@ -22,12 +22,14 @@ export function DataPreviewTable({ data = [], headers = [] }: DataPreviewTablePr
   }
 
   return (
-    <div className="relative h-full w-full overflow-auto rounded-md border">
+    <div className="relative w-full overflow-auto rounded-md border h-[60vh]">
       <Table>
         <TableHeader>
           <TableRow>
             {headers.map((header) => (
-              <TableHead key={header}>{header}</TableHead>
+              <TableHead key={header} className="sticky top-0 z-10 bg-card whitespace-nowrap">
+                {header}
+              </TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -35,7 +37,7 @@ export function DataPreviewTable({ data = [], headers = [] }: DataPreviewTablePr
           {data.map((row, rowIndex) => (
             <TableRow key={`row-${rowIndex}`}>
               {headers.map((header) => (
-                <TableCell key={`${header}-${rowIndex}`}>
+                <TableCell key={`${header}-${rowIndex}`} className="whitespace-nowrap">
                   {String(row[header] ?? 'N/A')}
                 </TableCell>
               ))}
