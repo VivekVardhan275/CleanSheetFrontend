@@ -15,10 +15,22 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [typedText, setTypedText] = useState('');
+
+  const fullText = "Welcome to CleanSheet";
 
   useEffect(() => {
     resetData();
   }, [resetData]);
+
+  useEffect(() => {
+    if (typedText.length < fullText.length) {
+      const timer = setTimeout(() => {
+        setTypedText(fullText.substring(0, typedText.length + 1));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [typedText, fullText]);
 
   const handleProcess = () => {
     const source = file || url;
@@ -50,8 +62,9 @@ export default function Home() {
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-2xl mx-auto text-center">
         <div className="mb-8 animate-in fade-in-0 slide-in-from-top-12 duration-500">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
-            Welcome to CleanSheet
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground min-h-[60px] sm:min-h-[72px]">
+            {typedText}
+            <span className="animate-blink text-muted-foreground">|</span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
             The intelligent tool to clean, preprocess, and analyze your datasets
