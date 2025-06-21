@@ -11,21 +11,10 @@ import {
   Sparkles,
   Wand2,
   ArrowRight,
-  HelpCircle,
   ArrowLeft,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  generateDefaultCleanSummary,
-  GenerateDefaultCleanSummaryInput,
-} from '@/ai/flows/generate-default-clean-summary';
 import { useData } from '@/context/data-context';
 
 export default function CleanPage() {
@@ -34,8 +23,6 @@ export default function CleanPage() {
   const { data, headers, schema, isLoading: isDataLoading } = useData();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showManualOptions, setShowManualOptions] = useState(false);
-  const [tooltipSummary, setTooltipSummary] = useState('Generating summary...');
-  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
 
   useEffect(() => {
     if (!isDataLoading && data.length === 0) {
@@ -47,37 +34,6 @@ export default function CleanPage() {
       router.push('/');
     }
   }, [isDataLoading, data, router, toast]);
-
-  useEffect(() => {
-    async function fetchSummary() {
-      if (!schema) {
-        if (!isDataLoading) {
-            setTooltipSummary('Could not load schema to generate summary.');
-            setIsSummaryLoading(false);
-        }
-        return;
-      }
-      try {
-        const input: GenerateDefaultCleanSummaryInput = {
-          numericColumns: schema.numericColumns,
-          categoricalColumns: schema.categoricalColumns,
-          columnsWithMissingValues: schema.columnsWithMissingValues,
-        };
-        const result = await generateDefaultCleanSummary(input);
-        setTooltipSummary(result.summary);
-      } catch (error) {
-        console.error('Failed to generate summary:', error);
-        setTooltipSummary(
-          'Could not generate summary. This may be due to a missing or invalid Google AI API key. Please check your .env file. Default steps will still be applied.'
-        );
-      } finally {
-        setIsSummaryLoading(false);
-      }
-    }
-    if (schema) {
-      fetchSummary();
-    }
-  }, [schema, isDataLoading]);
 
   const handleDefaultClean = () => {
     setIsProcessing(true);
@@ -142,47 +98,19 @@ export default function CleanPage() {
                 <CardTitle className="text-2xl">Proceed with Cleaning</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-stretch gap-2">
-                  <Button
-                    size="lg"
-                    className="flex-1 bg-primary/90 hover:bg-primary text-primary-foreground"
-                    onClick={handleDefaultClean}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    ) : (
-                      <Sparkles className="mr-2 h-5 w-5" />
-                    )}
-                    Proceed with Default Clean
-                  </Button>
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="aspect-square h-auto"
-                          disabled={isSummaryLoading}
-                        >
-                          {isSummaryLoading ? (
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                          ) : (
-                            <HelpCircle className="h-5 w-5" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="w-80 p-4">
-                        <h4 className="font-semibold mb-2 text-foreground">
-                          Default Cleaning Steps
-                        </h4>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                          {tooltipSummary}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+                <Button
+                  size="lg"
+                  className="w-full bg-primary/90 hover:bg-primary text-primary-foreground"
+                  onClick={handleDefaultClean}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-5 w-5" />
+                  )}
+                  Proceed with Default Clean
+                </Button>
                 <Button
                   size="lg"
                   variant="outline"
