@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateDefaultCleanSummaryInputSchema = z.object({
+const GenerateDefaultCleanSummaryInputSchema = z.object({
   numericColumns: z.array(z.string()).describe('List of numeric column names.'),
   categoricalColumns: z.array(z.string()).describe('List of categorical column names.'),
   columnsWithMissingValues: z
@@ -24,7 +24,7 @@ export const GenerateDefaultCleanSummaryInputSchema = z.object({
 });
 export type GenerateDefaultCleanSummaryInput = z.infer<typeof GenerateDefaultCleanSummaryInputSchema>;
 
-export const GenerateDefaultCleanSummaryOutputSchema = z.object({
+const GenerateDefaultCleanSummaryOutputSchema = z.object({
   summary: z.string().describe('A markdown-formatted summary of default data cleaning steps that will be applied.'),
 });
 export type GenerateDefaultCleanSummaryOutput = z.infer<typeof GenerateDefaultCleanSummaryOutputSchema>;
