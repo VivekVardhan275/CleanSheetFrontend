@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Download, FileCode, FileText, BarChart, RefreshCw } from 'lucide-react';
+import { Download, FileText, BarChart, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 const downloadItems = [
@@ -9,12 +9,6 @@ const downloadItems = [
         title: 'Cleaned Dataset',
         description: 'Your dataset, cleaned and preprocessed, ready for analysis.',
         buttonText: 'Download .csv',
-    },
-    {
-        icon: <FileCode className="w-8 h-8 text-accent" />,
-        title: 'Python Script',
-        description: 'An auto-generated Python script with all the preprocessing steps.',
-        buttonText: 'Download .py',
     },
     {
         icon: <BarChart className="w-8 h-8 text-destructive" />,
@@ -37,7 +31,7 @@ export default function DownloadPage() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-left animate-in fade-in-0 slide-in-from-top-16 duration-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-left animate-in fade-in-0 slide-in-from-top-16 duration-700">
           {downloadItems.map((item, index) => (
             <Card key={index} className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
