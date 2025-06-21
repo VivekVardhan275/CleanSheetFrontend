@@ -10,28 +10,28 @@ export const Logo = (props: SVGProps<SVGSVGElement>) => (
     {...props}
   >
     <path
-      d="M12 2.69C12 2.69 6.49 7.03 6.49 12.33C6.49 16.31 8.92 19.5 12 19.5C15.08 19.5 17.51 16.31 17.51 12.33C17.51 7.03 12 2.69 12 2.69Z"
+      d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
       className="stroke-primary"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
-      d="M9 14V11"
+      d="M12 17V7"
       className="stroke-accent"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
-      d="M12 14V9"
+      d="M9 17v-4"
       className="stroke-accent"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
-      d="M15 14V12"
+      d="M15 17v-7"
       className="stroke-accent"
       strokeWidth="2"
       strokeLinecap="round"
