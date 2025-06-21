@@ -6,7 +6,6 @@ import {
   TableBody,
   TableCell,
 } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DataPreviewTableProps {
     data: Record<string, any>[];
@@ -23,7 +22,7 @@ export function DataPreviewTable({ data = [], headers = [] }: DataPreviewTablePr
   }
 
   return (
-    <ScrollArea className="h-full w-full rounded-md border">
+    <div className="relative h-full w-full overflow-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -44,6 +43,6 @@ export function DataPreviewTable({ data = [], headers = [] }: DataPreviewTablePr
           ))}
         </TableBody>
       </Table>
-    </ScrollArea>
+    </div>
   );
 }
