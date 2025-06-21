@@ -11,10 +11,14 @@ import { useData } from '@/context/data-context';
 export default function Home() {
   const router = useRouter();
   const { toast } = useToast();
-  const { loadData, isLoading } = useData();
+  const { loadData, isLoading, resetData } = useData();
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    resetData();
+  }, [resetData]);
 
   const handleProcess = () => {
     if (!file && url.trim() === '') {
