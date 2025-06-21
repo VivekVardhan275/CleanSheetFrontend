@@ -38,7 +38,11 @@ export function ManualCleanSidebar({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Accordion type="multiple" className="w-full" defaultValue={['item-1']}>
+        <Accordion
+          type="multiple"
+          className="w-full"
+          defaultValue={['item-1', 'item-2']}
+        >
           <AccordionItem value="item-1">
             <AccordionTrigger>Step 1: Column Selection</AccordionTrigger>
             <AccordionContent className="space-y-3 max-h-60 overflow-y-auto p-1">
@@ -53,81 +57,101 @@ export function ManualCleanSidebar({
               ))}
             </AccordionContent>
           </AccordionItem>
-          
-          {columnsWithMissingValues.length > 0 && (
-            <AccordionItem value="item-2">
-              <AccordionTrigger>Step 2: Missing Value Imputation</AccordionTrigger>
-              <AccordionContent className="space-y-4">
-                 <p className="text-sm text-muted-foreground mb-2">
+
+          <AccordionItem value="item-2">
+            <AccordionTrigger>Step 2: Missing Value Imputation</AccordionTrigger>
+            <AccordionContent className="space-y-4">
+              {columnsWithMissingValues.length > 0 ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-2">
                     Choose a strategy to handle empty or null values.
-                 </p>
-                {columnsWithMissingValues.map((col) => (
-                  <div key={`missing-${col.name}`} className="space-y-2">
-                    <Label>{col.name}</Label>
-                    <Select defaultValue={col.type === 'numeric' ? 'mean' : 'mode'}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select imputation strategy" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="remove">Remove Rows</SelectItem>
-                        {col.type === 'numeric' ? (
-                          <>
-                            <SelectItem value="mean">Impute with Mean</SelectItem>
-                            <SelectItem value="median">Impute with Median</SelectItem>
-                          </>
-                        ) : (
-                          <>
-                             <SelectItem value="mode">Impute with Mode</SelectItem>
-                             <SelectItem value="constant">Impute with Constant</SelectItem>
-                          </>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-          )}
+                  </p>
+                  {columnsWithMissingValues.map((col) => (
+                    <div key={`missing-${col.name}`} className="space-y-2">
+                      <Label>{col.name}</Label>
+                      <Select
+                        defaultValue={
+                          col.type === 'numeric' ? 'mean' : 'mode'
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select imputation strategy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="remove">Remove Rows</SelectItem>
+                          {col.type === 'numeric' ? (
+                            <>
+                              <SelectItem value="mean">
+                                Impute with Mean
+                              </SelectItem>
+                              <SelectItem value="median">
+                                Impute with Median
+                              </SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="mode">
+                                Impute with Mode
+                              </SelectItem>
+                              <SelectItem value="constant">
+                                Impute with Constant
+                              </SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No missing values were detected in your dataset.
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
 
           <AccordionItem value="item-3">
             <AccordionTrigger>Step 3: Outlier Handling</AccordionTrigger>
             <AccordionContent>
-               <p className="text-sm text-muted-foreground mb-2">
+              <p className="text-sm text-muted-foreground mb-2">
                 Select a method to manage extreme values.
               </p>
               <Select defaultValue="none">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="iqr">Remove using IQR</SelectItem>
-                    <SelectItem value="zscore">Remove using Z-score</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="iqr">Remove using IQR</SelectItem>
+                  <SelectItem value="zscore">Remove using Z-score</SelectItem>
+                </SelectContent>
+              </Select>
             </AccordionContent>
           </AccordionItem>
 
           {categoricalColumns.length > 0 && (
             <AccordionItem value="item-4">
-              <AccordionTrigger>Step 4: Categorical Data Encoding</AccordionTrigger>
+              <AccordionTrigger>
+                Step 4: Categorical Data Encoding
+              </AccordionTrigger>
               <AccordionContent className="space-y-4">
-                 <p className="text-sm text-muted-foreground mb-2">
-                    Convert text categories to numerical representations.
-                 </p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Convert text categories to numerical representations.
+                </p>
                 {categoricalColumns.map((col) => (
-                    <div key={`cat-${col}`} className="space-y-2">
-                        <Label>{col}</Label>
-                        <Select defaultValue="onehot">
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select encoding" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="onehot">One-Hot Encoding</SelectItem>
-                            <SelectItem value="label">Label Encoding</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    </div>
+                  <div key={`cat-${col}`} className="space-y-2">
+                    <Label>{col}</Label>
+                    <Select defaultValue="onehot">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select encoding" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="onehot">One-Hot Encoding</SelectItem>
+                        <SelectItem value="label">Label Encoding</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 ))}
               </AccordionContent>
             </AccordionItem>
