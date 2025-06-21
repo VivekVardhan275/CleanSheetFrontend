@@ -19,7 +19,7 @@ const MOCK_DATA = [
   { id: 6, name: 'Charlie Black', age: 34, city: 'New York', occupation: 'Engineer' },
   { id: 7, name: 'Diana Prince', age: 29, city: 'London', occupation: 'Artist' },
   { id: 8, name: 'Peter Parker', age: 22, city: 'New York', occupation: 'Photographer' },
-  { id: 9, name: 'Bruce Wayne', age: 40, city: 'Gotham', occupation: 'CEO' },
+  { id: 9, 'name': 'Bruce Wayne', age: 40, city: 'Gotham', occupation: 'CEO' },
   { id: 10, name: 'Clark Kent', age: 35, city: 'Metropolis', occupation: 'Journalist' },
 ];
 
@@ -49,6 +49,7 @@ interface DataContextType {
   schema: DataSchema | null;
   loadData: () => void;
   isLoading: boolean;
+  resetData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -71,13 +72,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }, 1000); // Simulate network/parsing delay
   }, []);
 
+  const resetData = useCallback(() => {
+    setData([]);
+    setHeaders([]);
+    setSchema(null);
+  }, []);
+
   const value = useMemo(() => ({
     data,
     headers,
     schema,
     loadData,
-    isLoading
-  }), [data, headers, schema, loadData, isLoading]);
+    isLoading,
+    resetData,
+  }), [data, headers, schema, loadData, isLoading, resetData]);
 
   return (
     <DataContext.Provider value={value}>
