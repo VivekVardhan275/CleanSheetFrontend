@@ -15,45 +15,111 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import Image from 'next/image';
 import { useData } from '@/context/data-context';
-import { generateEda, type EdaResult } from '@/ai/flows/generate-eda-flow';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
+// Define a local type for the EDA results
+interface ClientEdaResult {
+  dataTypeDistribution: { name: string; value: number }[];
+  nullValueAnalysis: { name: string; missing: number }[];
+  valueDistributions: {
+    column: string;
+    distribution: { name: string; count: number }[];
+  }[];
+}
+
 export function EdaDashboardClient() {
-  const { data } = useData();
-  const { toast } = useToast();
-  const [edaResult, setEdaResult] = useState<EdaResult | null>(null);
+  const { data, schema, isLoading: isDataLoading } = useData();
+  const [edaResult, setEdaResult] = useState<ClientEdaResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (data.length > 0) {
-      const runEda = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const sampledData = data.slice(0, 500);
-          const result = await generateEda({ jsonData: JSON.stringify(sampledData) });
-          setEdaResult(result);
-        } catch (e) {
-          console.error('Failed to generate EDA:', e);
-          setError('An error occurred while generating the analysis. Please try again.');
-          toast({
-            variant: 'destructive',
-            title: 'Analysis Failed',
-            description: 'Could not generate the exploratory data analysis.',
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      runEda();
+    if (isDataLoading) {
+      setIsLoading(true);
+      return;
     }
-  }, [data, toast]);
+
+    if (data.length > 0 && schema) {
+      try {
+        setError(null);
+        
+        // 1. Data Type Distribution
+        const dataTypeDistribution = [
+          { name: 'Numeric', value: schema.numericColumns.length },
+          { name: 'Categorical', value: schema.categoricalColumns.length },
+        ].filter(d => d.value > 0);
+
+        // 2. Null Value Analysis
+        const nullValueAnalysis = schema.columnsWithMissingValues.map(col => {
+          const missingCount = data.filter(row => {
+            const value = row[col.name];
+            return value === null || value === undefined || String(value).trim() === '';
+          }).length;
+          return { name: col.name, missing: missingCount };
+        }).filter(item => item.missing > 0);
+
+        // 3. Value Distributions
+        const valueDistributions = [];
+        if (schema.numericColumns.length > 0) {
+            const mainNumericColumn = schema.numericColumns[0];
+            const values = data.map(row => Number(row[mainNumericColumn])).filter(v => !isNaN(v) && v !== null);
+            
+            if (values.length > 0) {
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                const range = max - min;
+                const binCount = Math.min(10, Math.floor(Math.sqrt(values.length)));
+                
+                if (range === 0 && binCount > 0) {
+                     valueDistributions.push({
+                        column: mainNumericColumn,
+                        distribution: [{ name: String(min), count: values.length }],
+                    });
+                } else if (binCount > 1) {
+                    const binSize = range / binCount;
+                    const bins = Array.from({ length: binCount }, (_, i) => {
+                        const binMin = min + i * binSize;
+                        const binMax = min + (i + 1) * binSize;
+                        const isLastBin = i === binCount - 1;
+
+                        const count = values.filter(v => 
+                            v >= binMin && (isLastBin ? v <= binMax : v < binMax)
+                        ).length;
+
+                        return {
+                            name: `${binMin.toFixed(1)}-${binMax.toFixed(1)}`,
+                            count: count,
+                        };
+                    });
+                     valueDistributions.push({
+                        column: mainNumericColumn,
+                        distribution: bins,
+                    });
+                }
+            }
+        }
+        
+        setEdaResult({
+          dataTypeDistribution,
+          nullValueAnalysis,
+          valueDistributions,
+        });
+
+      } catch (e) {
+        console.error('Failed to generate client-side EDA:', e);
+        setError('An error occurred while generating the analysis.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+        // Handle case with no data
+        setIsLoading(false);
+        setEdaResult(null);
+    }
+  }, [data, schema, isDataLoading]);
 
   if (isLoading) {
     return (
@@ -75,19 +141,19 @@ export function EdaDashboardClient() {
     );
   }
 
-  if (!edaResult) {
+  if (!edaResult || data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
-        <p className="text-lg text-muted-foreground">No analysis results to display.</p>
+        <p className="text-lg text-muted-foreground">No data to analyze.</p>
       </div>
     );
   }
 
-  const { dataTypeDistribution, nullValueAnalysis, valueDistributions, correlationHeatmapDataUri } = edaResult;
+  const { dataTypeDistribution, nullValueAnalysis, valueDistributions } = edaResult;
   const mainDistribution = valueDistributions[0];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in-0 duration-500">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in-0 duration-500">
       {/* Data Types */}
       <Card className="rounded-2xl shadow-lg lg:col-span-1">
         <CardHeader>
@@ -95,32 +161,38 @@ export function EdaDashboardClient() {
           <CardDescription>Distribution of column types.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={dataTypeDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              >
-                {dataTypeDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+           {dataTypeDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                <Pie
+                    data={dataTypeDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                    {dataTypeDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+                </PieChart>
+            </ResponsiveContainer>
+            ) : (
+             <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                No column types to display.
+            </div>
+            )}
         </CardContent>
       </Card>
       
       {/* Null Values */}
-      <Card className="rounded-2xl shadow-lg md:col-span-2">
+      <Card className="rounded-2xl shadow-lg lg:col-span-2">
         <CardHeader>
           <CardTitle>Null Value Analysis</CardTitle>
           <CardDescription>Count of missing values per column.</CardDescription>
@@ -146,8 +218,8 @@ export function EdaDashboardClient() {
       </Card>
 
       {/* Value Distribution */}
-      {mainDistribution && (
-        <Card className="rounded-2xl shadow-lg md:col-span-2">
+      {mainDistribution && mainDistribution.distribution.length > 0 && (
+        <Card className="rounded-2xl shadow-lg col-span-full">
           <CardHeader>
             <CardTitle>Value Distribution ({mainDistribution.column})</CardTitle>
             <CardDescription>Histogram showing frequency of {mainDistribution.column.toLowerCase()} groups.</CardDescription>
@@ -165,20 +237,6 @@ export function EdaDashboardClient() {
           </CardContent>
         </Card>
       )}
-      
-      {/* Correlation Heatmap */}
-      <Card className="rounded-2xl shadow-lg">
-        <CardHeader>
-          <CardTitle>Correlation Heatmap</CardTitle>
-           <CardDescription>Visualizing numerical correlations.</CardDescription>
-        </CardHeader>
-        <CardContent>
-           <div className="flex items-center justify-center h-[300px] bg-muted/50 rounded-lg overflow-hidden">
-             <Image src={correlationHeatmapDataUri} alt="Correlation Heatmap" width={300} height={300} data-ai-hint="heatmap chart" style={{ objectFit: 'contain' }}/>
-           </div>
-        </CardContent>
-      </Card>
-      
     </div>
   );
 }
