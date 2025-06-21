@@ -68,7 +68,7 @@ export default function CleanPage() {
       } catch (error) {
         console.error('Failed to generate summary:', error);
         setTooltipSummary(
-          'Could not load summary. Default steps include handling missing values, encoding categorical data, and scaling numeric features.'
+          'Could not generate summary. This may be due to a missing or invalid Google AI API key. Please check your .env file. Default steps will still be applied.'
         );
       } finally {
         setIsSummaryLoading(false);
