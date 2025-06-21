@@ -44,6 +44,7 @@ export async function generateEda(input: EdaInput): Promise<EdaResult> {
 
 const edaPrompt = ai.definePrompt({
   name: 'edaAnalysisPrompt',
+  model: 'googleai/gemini-1.5-flash-latest',
   input: { schema: EdaInputSchema },
   output: { schema: EdaResultSchema.omit({ correlationHeatmapDataUri: true }) },
   prompt: `You are an expert data analyst. Analyze the following dataset and provide a structured Exploratory Data Analysis (EDA).
