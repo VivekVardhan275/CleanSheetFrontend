@@ -67,6 +67,7 @@ const generateEdaFlow = ai.defineFlow(
     outputSchema: EdaResultSchema,
   },
   async (input) => {
+    // Kick off the text analysis and image generation in parallel
     const textEdaPromise = edaPrompt(input);
 
     const imagePromise = ai.generate({
@@ -77,6 +78,7 @@ const generateEdaFlow = ai.defineFlow(
       },
     });
 
+    // Wait for both promises to resolve
     const [textEdaResponse, imageResponse] = await Promise.all([textEdaPromise, imagePromise]);
     
     const textEdaOutput = textEdaResponse.output;
@@ -86,6 +88,7 @@ const generateEdaFlow = ai.defineFlow(
       throw new Error('Failed to generate complete EDA report.');
     }
     
+    // Combine the results and return
     return {
       ...textEdaOutput,
       correlationHeatmapDataUri: heatmapUri,
