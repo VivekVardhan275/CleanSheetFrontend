@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useData } from '@/context/data-context';
 
 export default function Home() {
   const router = useRouter();
   const { toast } = useToast();
+  const { loadData, isLoading } = useData();
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleProcess = () => {
     if (!file && url.trim() === '') {
@@ -24,16 +26,15 @@ export default function Home() {
       return;
     }
 
-    setIsLoading(true);
-
-    // Simulate processing delay
-    setTimeout(() => {
-      // In a real application, you would pass the file/URL info to the next page,
-      // for example, by uploading it and getting an ID, then passing the ID.
-      // For this scaffold, we'll just navigate.
-      router.push('/clean');
-    }, 1500);
+    setIsProcessing(true);
+    loadData();
   };
+
+  useEffect(() => {
+      if (isProcessing && !isLoading) {
+          router.push('/clean');
+      }
+  }, [isLoading, isProcessing, router]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
@@ -52,7 +53,7 @@ export default function Home() {
           <FileUploader
             onFileSelect={setFile}
             onUrlChange={setUrl}
-            disabled={isLoading}
+            disabled={isLoading || isProcessing}
           />
         </div>
 
@@ -60,10 +61,10 @@ export default function Home() {
           <Button
             size="lg"
             onClick={handleProcess}
-            disabled={isLoading}
+            disabled={isLoading || isProcessing}
             className="w-full sm:w-auto"
           >
-            {isLoading ? (
+            {(isLoading || isProcessing) ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...

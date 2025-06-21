@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/header';
 import { ThemeProvider } from '@/components/theme-provider';
+import { DataProvider } from '@/context/data-context';
 
 export const metadata: Metadata = {
   title: 'DataCleanr',
@@ -26,9 +27,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
         <ThemeProvider>
-          <Header />
-          <main className="flex-1 flex flex-col">{children}</main>
-          <Toaster />
+          <DataProvider>
+            <Header />
+            <main className="flex-1 flex flex-col">{children}</main>
+            <Toaster />
+          </DataProvider>
         </ThemeProvider>
       </body>
     </html>

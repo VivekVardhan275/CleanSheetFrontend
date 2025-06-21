@@ -26,33 +26,42 @@ import {
   generateDefaultCleanSummary,
   GenerateDefaultCleanSummaryInput,
 } from '@/ai/flows/generate-default-clean-summary';
+import { useData } from '@/context/data-context';
 
 export default function CleanPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { data, headers, schema, isLoading: isDataLoading } = useData();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showManualOptions, setShowManualOptions] = useState(false);
   const [tooltipSummary, setTooltipSummary] = useState('Generating summary...');
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
 
-  // NOTE: In a real app, this data would be derived from the uploaded file.
-  const MOCK_DATA_SCHEMA = {
-    allColumns: ['ID', 'Name', 'Age', 'City', 'Occupation'],
-    numericColumns: ['Age'],
-    categoricalColumns: ['City', 'Occupation'],
-    columnsWithMissingValues: [
-      { name: 'Age', type: 'numeric' as const },
-      { name: 'Occupation', type: 'categorical' as const },
-    ],
-  };
+  useEffect(() => {
+    if (!isDataLoading && data.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No data loaded',
+        description: 'Please upload a dataset first.',
+      });
+      router.push('/');
+    }
+  }, [isDataLoading, data, router, toast]);
 
   useEffect(() => {
     async function fetchSummary() {
+      if (!schema) {
+        if (!isDataLoading) {
+            setTooltipSummary('Could not load schema to generate summary.');
+            setIsSummaryLoading(false);
+        }
+        return;
+      }
       try {
         const input: GenerateDefaultCleanSummaryInput = {
-          numericColumns: MOCK_DATA_SCHEMA.numericColumns,
-          categoricalColumns: MOCK_DATA_SCHEMA.categoricalColumns,
-          columnsWithMissingValues: MOCK_DATA_SCHEMA.columnsWithMissingValues,
+          numericColumns: schema.numericColumns,
+          categoricalColumns: schema.categoricalColumns,
+          columnsWithMissingValues: schema.columnsWithMissingValues,
         };
         const result = await generateDefaultCleanSummary(input);
         setTooltipSummary(result.summary);
@@ -65,9 +74,10 @@ export default function CleanPage() {
         setIsSummaryLoading(false);
       }
     }
-    fetchSummary();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (schema) {
+      fetchSummary();
+    }
+  }, [schema, isDataLoading]);
 
   const handleDefaultClean = () => {
     setIsProcessing(true);
@@ -93,6 +103,15 @@ export default function CleanPage() {
     }, 1500);
   };
 
+  if (isDataLoading || !schema) {
+    return (
+        <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-4 text-lg">Loading data...</span>
+        </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-8 px-4 flex-1">
       <div
@@ -113,7 +132,7 @@ export default function CleanPage() {
               <CardTitle className="text-2xl">Data Preview</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 -mt-4">
-              <DataPreviewTable />
+              <DataPreviewTable data={data} headers={headers}/>
             </CardContent>
           </Card>
 
@@ -183,11 +202,11 @@ export default function CleanPage() {
         {showManualOptions && (
           <div className="lg:col-span-1 lg:sticky lg:top-20 animate-in fade-in-0 slide-in-from-right-12 duration-500">
             <ManualCleanSidebar
-              allColumns={MOCK_DATA_SCHEMA.allColumns}
-              numericColumns={MOCK_DATA_SCHEMA.numericColumns}
-              categoricalColumns={MOCK_DATA_SCHEMA.categoricalColumns}
+              allColumns={schema.allColumns}
+              numericColumns={schema.numericColumns}
+              categoricalColumns={schema.categoricalColumns}
               columnsWithMissingValues={
-                MOCK_DATA_SCHEMA.columnsWithMissingValues
+                schema.columnsWithMissingValues
               }
             />
             <div className="flex flex-col sm:flex-row gap-2 mt-4">
