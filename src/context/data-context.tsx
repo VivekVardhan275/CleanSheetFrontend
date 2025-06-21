@@ -9,6 +9,7 @@ import React, {
   useCallback,
 } from 'react';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 type DataSchema = {
     allColumns: string[];
@@ -90,39 +91,85 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSchema(null);
     setIsLoading(false);
   }, []);
+  
+  const processAndSetData = useCallback((parsedData: Record<string, any>[], parsedHeaders: string[]) => {
+      const filteredData = parsedData.filter(row => 
+          Object.values(row).some(val => val !== null && val !== '' && val !== undefined)
+      );
+
+      setData(filteredData);
+      setHeaders(parsedHeaders);
+      const generatedSchema = generateSchema(filteredData, parsedHeaders);
+      setSchema(generatedSchema);
+      setIsLoading(false);
+  }, []);
+
 
   const loadData = useCallback((source: File | string) => {
     setIsLoading(true);
 
-    Papa.parse(source, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true,
-        download: typeof source === 'string',
-        complete: (results) => {
-            if (results.errors.length) {
-                console.error('Parsing errors:', results.errors);
-                resetData();
-                return;
-            }
-
-            const parsedHeaders = results.meta.fields || [];
-            const parsedData = (results.data as Record<string, any>[]).filter(row => 
-                Object.values(row).some(val => val !== null && val !== '')
-            );
-
-            setData(parsedData);
-            setHeaders(parsedHeaders);
-            const generatedSchema = generateSchema(parsedData, parsedHeaders);
-            setSchema(generatedSchema);
-            setIsLoading(false);
-        },
-        error: (error: any) => {
-            console.error('PapaParse error:', error);
+    const handlePapaParseComplete = (results: Papa.ParseResult<Record<string, any>>) => {
+        if (results.errors.length) {
+            console.error('Parsing errors:', results.errors);
             resetData();
+            return;
         }
-    });
-  }, [resetData]);
+        const parsedHeaders = results.meta.fields || [];
+        processAndSetData(results.data, parsedHeaders);
+    };
+    
+    const handlePapaParseError = (error: any) => {
+        console.error('PapaParse error:', error);
+        resetData();
+    };
+
+    if (typeof source === 'string') {
+        Papa.parse(source, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            download: true,
+            complete: handlePapaParseComplete,
+            error: handlePapaParseError,
+        });
+        return;
+    }
+    
+    const file = source;
+    if (file.name.toLowerCase().endsWith('.csv')) {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: handlePapaParseComplete,
+            error: handlePapaParseError,
+        });
+    } else if (file.name.toLowerCase().endsWith('.xlsx')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const binaryStr = event.target?.result;
+                const workbook = XLSX.read(binaryStr, { type: 'binary', cellDates: true });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet);
+                const jsonHeaders = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+                processAndSetData(jsonData, jsonHeaders);
+            } catch (error) {
+                console.error('Error parsing XLSX file:', error);
+                resetData();
+            }
+        };
+        reader.onerror = (error) => {
+            console.error('FileReader error:', error);
+            resetData();
+        };
+        reader.readAsBinaryString(file);
+    } else {
+        console.error('Unsupported file type');
+        resetData();
+    }
+  }, [resetData, processAndSetData]);
 
   const value = useMemo(() => ({
     data,
