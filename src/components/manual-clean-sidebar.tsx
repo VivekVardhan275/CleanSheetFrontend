@@ -16,11 +16,21 @@ import {
 } from '@/components/ui/select';
 import { Wand2 } from 'lucide-react';
 
-const mockColumns = ['ID', 'Name', 'Age', 'City', 'Occupation'];
+interface ManualCleanSidebarProps {
+    allColumns: string[];
+    numericColumns: string[];
+    categoricalColumns: string[];
+    columnsWithMissingValues: { name: string; type: 'numeric' | 'categorical' }[];
+}
 
-export function ManualCleanSidebar() {
+export function ManualCleanSidebar({
+    allColumns = [],
+    numericColumns = [],
+    categoricalColumns = [],
+    columnsWithMissingValues = [],
+}: ManualCleanSidebarProps) {
   return (
-    <Card className="rounded-2xl shadow-lg animate-in fade-in-0 delay-300 duration-500">
+    <Card className="rounded-2xl shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wand2 className="h-6 w-6" />
@@ -28,92 +38,104 @@ export function ManualCleanSidebar() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="multiple" className="w-full" defaultValue={['item-1']}>
           <AccordionItem value="item-1">
             <AccordionTrigger>Step 1: Select Columns</AccordionTrigger>
-            <AccordionContent className="space-y-3">
+            <AccordionContent className="space-y-3 max-h-60 overflow-y-auto p-1">
               <p className="text-sm text-muted-foreground">
                 Choose columns to keep in your dataset.
               </p>
-              {mockColumns.map((col) => (
+              {allColumns.map((col) => (
                 <div key={col} className="flex items-center space-x-2">
-                  <Checkbox id={col} defaultChecked />
-                  <Label htmlFor={col}>{col}</Label>
+                  <Checkbox id={`col-${col}`} defaultChecked />
+                  <Label htmlFor={`col-${col}`}>{col}</Label>
                 </div>
               ))}
             </AccordionContent>
           </AccordionItem>
-          <AccordionItem value="item-2">
-            <AccordionTrigger>Step 2: Handle Missing Values</AccordionTrigger>
-            <AccordionContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Age</Label>
-                <Select defaultValue="mean">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="remove">Remove Row</SelectItem>
-                    <SelectItem value="mean">Fill with Mean</SelectItem>
-                    <SelectItem value="median">Fill with Median</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Occupation</Label>
-                <Select defaultValue="mode">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="remove">Remove Row</SelectItem>
-                    <SelectItem value="mode">Fill with Mode</SelectItem>
-                    <SelectItem value="constant">Fill with Constant</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-3">
-            <AccordionTrigger>Step 3: Encode Categorical</AccordionTrigger>
-            <AccordionContent>
-              <p className="text-sm text-muted-foreground mb-2">
-                Convert text categories to numbers.
-              </p>
-              <div className="space-y-2">
-                <Label>City</Label>
-                <Select defaultValue="onehot">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select encoding" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="onehot">One-Hot Encoding</SelectItem>
-                    <SelectItem value="label">Label Encoding</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-4">
-            <AccordionTrigger>Step 4: Feature Scaling</AccordionTrigger>
-            <AccordionContent>
-               <p className="text-sm text-muted-foreground mb-2">
-                Scale numerical features to a similar range.
-              </p>
-              <div className="space-y-2">
-                <Label>Age</Label>
-                <Select defaultValue="standard">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select scaling" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard Scaler</SelectItem>
-                    <SelectItem value="minmax">Min-Max Scaler</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+          
+          {columnsWithMissingValues.length > 0 && (
+            <AccordionItem value="item-2">
+              <AccordionTrigger>Step 2: Handle Missing Values</AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                {columnsWithMissingValues.map((col) => (
+                  <div key={`missing-${col.name}`} className="space-y-2">
+                    <Label>{col.name}</Label>
+                    <Select defaultValue={col.type === 'numeric' ? 'mean' : 'mode'}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="remove">Remove Row</SelectItem>
+                        {col.type === 'numeric' ? (
+                          <>
+                            <SelectItem value="mean">Fill with Mean</SelectItem>
+                            <SelectItem value="median">Fill with Median</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                             <SelectItem value="mode">Fill with Mode</SelectItem>
+                             <SelectItem value="constant">Fill with Constant</SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {categoricalColumns.length > 0 && (
+            <AccordionItem value="item-3">
+              <AccordionTrigger>Step 3: Encode Categorical</AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                 <p className="text-sm text-muted-foreground mb-2">
+                    Convert text categories to numbers.
+                 </p>
+                {categoricalColumns.map((col) => (
+                    <div key={`cat-${col}`} className="space-y-2">
+                        <Label>{col}</Label>
+                        <Select defaultValue="onehot">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select encoding" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="onehot">One-Hot Encoding</SelectItem>
+                            <SelectItem value="label">Label Encoding</SelectItem>
+                        </SelectContent>
+                        </Select>
+                    </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          )}
+          
+          {numericColumns.length > 0 && (
+            <AccordionItem value="item-4">
+                <AccordionTrigger>Step 4: Feature Scaling</AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                    Scale numerical features to a similar range.
+                </p>
+                {numericColumns.map((col) => (
+                    <div key={`scale-${col}`} className="space-y-2">
+                        <Label>{col}</Label>
+                        <Select defaultValue="standard">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select scaling" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="standard">Standard Scaler</SelectItem>
+                            <SelectItem value="minmax">Min-Max Scaler</SelectItem>
+                        </SelectContent>
+                        </Select>
+                    </div>
+                ))}
+                </AccordionContent>
+            </AccordionItem>
+          )}
+
           <AccordionItem value="item-5">
             <AccordionTrigger>Step 5: Outlier Detection</AccordionTrigger>
             <AccordionContent>

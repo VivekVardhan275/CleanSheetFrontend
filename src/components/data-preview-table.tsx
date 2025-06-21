@@ -17,13 +17,16 @@ const MOCK_DATA = [
   { id: 5, name: 'Bob Brown', age: '23', city: 'Paris', occupation: null },
   { id: 6, name: 'Charlie Black', age: '34', city: 'New York', occupation: 'Engineer' },
   { id: 7, name: 'Diana Prince', age: '29', city: 'London', occupation: 'Artist' },
+  { id: 8, name: 'Peter Parker', age: '22', city: 'New York', occupation: 'Photographer' },
+  { id: 9, name: 'Bruce Wayne', age: '40', city: 'Gotham', occupation: 'CEO' },
+  { id: 10, name: 'Clark Kent', age: '35', city: 'Metropolis', occupation: 'Journalist' },
 ];
 
 const MOCK_HEADERS = ['ID', 'Name', 'Age', 'City', 'Occupation'];
 
 export function DataPreviewTable() {
   return (
-    <ScrollArea className="h-72 w-full rounded-md border">
+    <ScrollArea className="h-full w-full rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
