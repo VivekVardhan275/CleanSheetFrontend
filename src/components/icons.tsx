@@ -11,16 +11,39 @@ export const Logo = (props: SVGProps<SVGSVGElement>) => (
   >
     <rect width="24" height="24" rx="6" className="fill-primary" />
     <path
-      d="M12 15.5C13.3807 15.5 14.5 14.3807 14.5 13C14.5 11.6193 13.3807 10.5 12 10.5C10.6193 10.5 9.5 11.6193 9.5 13C9.5 14.3807 10.6193 15.5 12 15.5Z"
+      d="M10 13L17 6"
       stroke="hsl(var(--primary-foreground))"
       strokeWidth="1.5"
+      strokeLinecap="round"
     />
     <path
-      d="M12 10.5V8.5L14.5 7"
+      d="M14 9L18 13L10 21L6 17L14 9Z"
+      fill="hsl(var(--accent))"
       stroke="hsl(var(--primary-foreground))"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
+    />
+    <circle
+      cx="7"
+      cy="8"
+      r="1"
+      fill="hsl(var(--primary-foreground))"
+      fillOpacity="0.6"
+    />
+    <circle
+      cx="9"
+      cy="6"
+      r="0.5"
+      fill="hsl(var(--primary-foreground))"
+      fillOpacity="0.6"
+    />
+    <circle
+      cx="6"
+      cy="11"
+      r="0.5"
+      fill="hsl(var(--primary-foreground))"
+      fillOpacity="0.6"
     />
   </svg>
 );
