@@ -120,7 +120,7 @@ export function EdaDashboardClient() {
       </div>
         <Card className="rounded-2xl shadow-lg overflow-hidden">
             <CardHeader>
-                <CardTitle>Exploratory Data Analysis</CardTitle>
+                <CardTitle>Exploratory Data Analysis Report :</CardTitle>
             </CardHeader>
             <CardContent className="p-0 sm:p-0 pt-6">
                 <iframe
