@@ -11,13 +11,15 @@ interface FileUploaderProps {
   onUrlChange: (url: string) => void;
   disabled?: boolean;
   urlValue: string;
+  fileIsSelected: boolean;
 }
 
 export function FileUploader({
   onFileSelect,
   onUrlChange,
   disabled,
-  urlValue
+  urlValue,
+  fileIsSelected,
 }: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,21 +42,25 @@ export function FileUploader({
       } else {
         alert('Please upload a .csv or .xlsx file.');
         onFileSelect(null);
-        if(fileInputRef.current) fileInputRef.current.value = '';
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     }
   };
-  
+
   const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUrlChange(e.target.value);
   };
 
+  const isFileDisabled = disabled || !!urlValue;
+  const isUrlDisabled = disabled || fileIsSelected;
+
   return (
     <div className="relative max-w-2xl mx-auto w-full">
-      <div className={cn(
-          "bg-card rounded-full p-2 flex items-center border",
-          disabled && 'opacity-50'
-      )}>
+      <div
+        className={cn(
+          'bg-card rounded-full p-2 flex items-center border'
+        )}
+      >
         <input
           id="file-upload"
           type="file"
@@ -62,14 +68,14 @@ export function FileUploader({
           ref={fileInputRef}
           onChange={handleFileChange}
           accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-          disabled={disabled}
+          disabled={isFileDisabled}
         />
         <Button
           variant="ghost"
           size="icon"
           className="rounded-full flex-shrink-0"
           onClick={handleFileClick}
-          disabled={disabled}
+          disabled={isFileDisabled}
           aria-label="Upload file"
         >
           <Paperclip className="w-5 h-5 text-muted-foreground" />
@@ -80,7 +86,7 @@ export function FileUploader({
           className="bg-transparent flex-1 outline-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground pl-2"
           onChange={handleUrlInputChange}
           value={urlValue}
-          disabled={disabled}
+          disabled={isUrlDisabled}
         />
       </div>
     </div>

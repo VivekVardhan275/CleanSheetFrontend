@@ -66,13 +66,8 @@ export default function Home() {
         });
         return;
       }
-      setFile(null);
     }
     
-    if (file) {
-        setUrl('');
-    }
-
     setIsProcessing(true);
     loadData(source);
   };
@@ -118,6 +113,7 @@ export default function Home() {
                 onUrlChange={handleUrlChanged}
                 disabled={isLoading || isProcessing}
                 urlValue={url}
+                fileIsSelected={!!file}
             />
              {file && (
                 <p className="text-sm mt-4 text-muted-foreground animate-in fade-in-0 duration-500">Selected file: {file.name}</p>
