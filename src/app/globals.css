@@ -69,49 +69,34 @@
 }
 
 @layer components {
+  /* Base prose styles for typography and layout */
   .prose {
     @apply max-w-none text-foreground;
   }
-  .prose h1, .prose h2, .prose h3, .prose h4 {
-    @apply font-bold tracking-tight mt-8 mb-6 border-b-0;
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    @apply font-bold tracking-tight mt-8 mb-4 text-foreground;
   }
   /* The main title from the report is hidden because we show it in the CardHeader */
-  .prose > h1:first-child {
+  .prose > .container-fluid > .row:first-of-type > h1:first-child {
       @apply hidden;
   }
-  .prose h2 { @apply text-3xl pb-0; }
-  .prose h3 { @apply text-2xl pb-0; }
-  .prose h4 { @apply text-xl pb-0; }
+  .prose h2, .prose h3, .prose h4 {
+      @apply border-b border-border pb-2;
+  }
+  .prose h2 { @apply text-3xl; }
+  .prose h3 { @apply text-2xl; }
+  .prose h4 { @apply text-xl; }
 
   .prose p, .prose ul, .prose ol, .prose blockquote {
-    @apply leading-7 mb-4;
+    @apply leading-7 my-4;
   }
   .prose ul, .prose ol { @apply pl-6; }
   .prose ul { @apply list-disc; }
   .prose ol { @apply list-decimal; }
   .prose a { @apply text-primary hover:underline; }
-  .prose img { @apply rounded-lg shadow-md my-6 w-full max-w-full mx-auto; }
-
-  /* EDA Report Table Styles */
-  .prose table {
-    @apply w-full my-4 border-collapse;
-    background: transparent !important;
-  }
-  .prose thead {
-    @apply border-b-0;
-  }
-  .prose th {
-    @apply p-3 font-semibold bg-transparent text-left;
-  }
-  .prose td {
-    @apply p-3 border-b border-border/40;
-  }
-  .prose table tr:last-child > td {
-      @apply border-b-0;
-  }
-
+  .prose img { @apply rounded-lg shadow-md my-6 w-full max-w-full mx-auto bg-white; }
   .prose blockquote {
-    @apply border-l-4 pl-4 italic text-muted-foreground;
+    @apply border-l-4 border-border pl-4 italic text-muted-foreground;
   }
   .prose code {
     @apply rounded bg-muted px-1.5 py-1 font-mono text-sm;
@@ -120,35 +105,23 @@
     @apply bg-muted p-4 rounded-lg overflow-x-auto;
   }
 
-  /* EDA Report Layout & Tab Styles */
+  /* Specific styles for ydata-profiling report */
+  
+  /* Layout and general elements */
+  .prose .container-fluid, .prose .row, .prose [class*="col-"] {
+    @apply w-full p-0 m-0;
+  }
   .prose .row {
-    @apply flex flex-wrap -mx-4;
+    @apply flex flex-wrap -mx-2;
+  }
+  .prose [class*="col-"] {
+    @apply px-2;
   }
   .prose .col-sm-6 {
-    @apply w-full md:w-1/2 px-4;
+    @apply w-full md:w-1/2;
   }
-  .prose .nav-tabs {
-    @apply border-b border-border mb-6 flex space-x-1 list-none p-0;
-  }
-  .prose .nav-item {
-    @apply m-0;
-  }
-  .prose .nav-link {
-    @apply px-4 py-2 rounded-md text-sm font-medium transition-colors;
-    @apply text-muted-foreground bg-transparent hover:bg-muted/50 hover:text-foreground;
-  }
-  .prose .nav-link.active {
-    @apply bg-background text-foreground shadow-sm;
-  }
-  .prose .badge {
-    @apply ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full;
-    @apply bg-muted text-muted-foreground;
-  }
-  .prose .progress {
-    @apply h-2.5 rounded-full bg-muted overflow-hidden flex;
-  }
-  .prose .progress-bar {
-    @apply bg-primary;
+  .prose .col-sm-12 {
+    @apply w-full;
   }
 
   /* Hide unwanted report elements */
@@ -156,19 +129,98 @@
     @apply hidden;
   }
 
-  /* Dark mode overrides for EDA report */
-  .dark .prose {
-    @apply text-foreground;
+  /* Tab navigation styling */
+  .prose .nav-tabs {
+    @apply border-b border-border mb-6 flex flex-wrap list-none p-0;
   }
-  .dark .prose a { @apply text-primary; }
-  .dark .prose td { @apply border-border/20; }
-  .dark .prose .nav-link.active {
-    @apply bg-card text-card-foreground;
+  .prose .nav-item {
+    @apply m-0;
   }
-  .dark .prose blockquote {
-    @apply border-primary text-muted-foreground;
+  .prose .nav-tabs > li > a, .prose .nav-tabs .nav-link {
+    @apply px-4 py-2 rounded-t-md text-sm font-medium transition-colors border-b-2 border-transparent;
+    @apply text-muted-foreground hover:border-accent hover:text-foreground;
   }
-  .dark .prose code {
-    @apply bg-muted/70;
+  .prose .nav-tabs > li.active > a, 
+  .prose .nav-tabs > li > a.active,
+  .prose .nav-tabs .nav-link.active {
+    @apply text-primary border-primary bg-transparent;
+    background-color: transparent !important;
+  }
+  .dark .prose .nav-tabs > li.active > a, 
+  .dark .prose .nav-tabs > li > a.active,
+  .dark .prose .nav-tabs .nav-link.active {
+    @apply text-primary border-primary;
+  }
+
+  /* Tables styling */
+  .prose .table {
+    @apply w-full my-4 border-collapse;
+    background-color: transparent !important;
+  }
+  .prose .table > thead > tr > th,
+  .prose .table > tbody > tr > th,
+  .prose .table > tfoot > tr > th,
+  .prose .table > thead > tr > td,
+  .prose .table > tbody > tr > td,
+  .prose .table > tfoot > tr > td {
+    @apply p-3 align-top border-b border-border/40;
+  }
+  .prose .table > thead > tr > th {
+    @apply font-semibold text-left align-middle;
+    color: hsl(var(--muted-foreground));
+  }
+  .prose .table-condensed > thead > tr > th,
+  .prose .table-condensed > tbody > tr > th,
+  .prose .table-condensed > tfoot > tr > th,
+  .prose .table-condensed > thead > tr > td,
+  .prose .table-condensed > tbody > tr > td,
+  .prose .table-condensed > tfoot > tr > td {
+      @apply p-2;
+  }
+  .prose .table .table {
+    background-color: transparent !important;
+  }
+  .prose .table tr:last-child > td {
+      @apply border-b-0;
+  }
+  .dark .prose .table-striped > tbody > tr:nth-of-type(odd) {
+      background-color: hsl(var(--muted) / 0.03) !important;
+  }
+
+  /* Panel styling for variables */
+  .prose .panel {
+    @apply mb-5 border border-border rounded-lg shadow-sm bg-transparent;
+  }
+  .prose .panel-heading {
+    @apply px-4 py-3 border-b border-border;
+  }
+  .prose .panel-title {
+    @apply text-lg font-semibold;
+  }
+  .prose .panel-body {
+    @apply p-4;
+  }
+
+  /* Badges and alerts */
+  .prose .badge {
+    @apply ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full;
+    @apply bg-primary/10 text-primary;
+  }
+  .dark .prose .badge {
+    @apply bg-primary/20 text-primary;
+  }
+  .prose .alert {
+    @apply p-4 my-4 border rounded-lg;
+  }
+  .prose .alert-warning {
+    @apply bg-destructive/10 border-destructive/50 text-destructive;
+  }
+
+  /* Progress bars */
+  .prose .progress {
+    @apply h-2.5 rounded-full bg-muted overflow-hidden flex my-2;
+  }
+  .prose .progress-bar {
+    @apply bg-primary;
   }
 }
