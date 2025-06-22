@@ -172,57 +172,55 @@ export function EdaDashboardClient() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [reportTitle, setReportTitle] = useState('EDA Report');
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
 
+  // Effect to style and observe the iframe once it's loaded
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (iframe && edaHtml) {
-      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      
-      const doc = iframe.contentDocument;
-      if (doc) {
-        // Write the HTML content to the iframe
-        doc.open();
-        doc.write(edaHtml);
-        doc.close();
-
-        // Inject our custom stylesheet
-        const styleEl = doc.createElement('style');
-        styleEl.textContent = getReportCss(isDark);
-        doc.head.appendChild(styleEl);
-
-        // Auto-adjust iframe height to content
-        const resizeIframe = () => {
-          if (iframe && doc.body.scrollHeight > 0) {
-              iframe.style.height = doc.body.scrollHeight + 50 + 'px';
-          }
-        };
-
-        // This is a bit of a hack, but ydata-profiling scripts can take a moment to expand all elements.
-        // We observe for changes and resize accordingly.
-        const observer = new MutationObserver(resizeIframe);
-        observer.observe(doc.body, { childList: true, subtree: true, attributes: true });
-
-        // Run initial resize after a short delay
-        const timeoutId = setTimeout(resizeIframe, 300);
-
-        // Add font link to iframe head
-        const fontLink = doc.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
-        fontLink.rel = 'stylesheet';
-        doc.head.appendChild(fontLink);
-        
-        // Cleanup observer on unmount
-        return () => {
-            observer.disconnect();
-            clearTimeout(timeoutId);
-        }
-      }
+    if (!iframe || !isIframeLoaded || !iframe.contentDocument) {
+      return;
     }
-  }, [edaHtml, theme]);
+    
+    const doc = iframe.contentDocument;
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
+    // Inject our custom stylesheet
+    const styleEl = doc.createElement('style');
+    styleEl.textContent = getReportCss(isDark);
+    doc.head.appendChild(styleEl);
+
+    // Add font link to iframe head
+    const fontLink = doc.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+    fontLink.rel = 'stylesheet';
+    doc.head.appendChild(fontLink);
+
+    // Auto-adjust iframe height to content
+    const resizeIframe = () => {
+      if (iframe && doc.body.scrollHeight > 0) {
+        iframe.style.height = doc.body.scrollHeight + 50 + 'px';
+      }
+    };
+
+    const observer = new MutationObserver(resizeIframe);
+    observer.observe(doc.body, { childList: true, subtree: true, attributes: true });
+
+    const timeoutId = setTimeout(resizeIframe, 300);
+
+    // Cleanup function
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+      // Reset loaded state if edaHtml changes so the effect can re-run
+      if (isIframeLoaded) {
+        setIsIframeLoaded(false); 
+      }
+    };
+  }, [isIframeLoaded, theme]);
+
+  // Effect to extract the report title
   useEffect(() => {
     if (edaHtml) {
-      // Extract title from the original HTML string for the CardHeader
       try {
         const doc = new DOMParser().parseFromString(edaHtml, 'text/html');
         const title = doc.querySelector('h1')?.textContent?.trim();
@@ -339,10 +337,13 @@ export function EdaDashboardClient() {
             <CardContent className="p-0 sm:p-0 -mt-6">
                 <iframe
                   ref={iframeRef}
+                  srcDoc={edaHtml}
                   title="EDA Report"
-                  className="w-full h-[100vh] border-0"
-                  sandbox="allow-scripts"
+                  className="w-full border-0"
+                  style={{ height: '100vh' }}
+                  sandbox="allow-scripts allow-same-origin"
                   scrolling="no"
+                  onLoad={() => setIsIframeLoaded(true)}
                 />
             </CardContent>
         </Card>
