@@ -124,7 +124,7 @@ export function EdaDashboardClient() {
         },
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
 
@@ -136,7 +136,7 @@ export function EdaDashboardClient() {
         format: [imgWidth + margin * 2, imgHeight + margin * 2],
       });
 
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
       pdf.save('eda-report_CleanSheet.pdf');
     } catch (err) {
       console.error('Failed to generate PDF:', err);
