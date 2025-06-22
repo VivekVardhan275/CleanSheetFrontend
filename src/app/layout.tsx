@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { DataProvider } from '@/context/data-context';
 
 export const metadata: Metadata = {
-  title: 'CleanSheet',
+  title: 'DataCleanr',
   description: 'Clean, analyze, and transform your data with ease.',
 };
 
@@ -26,9 +26,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
+         <div className="absolute top-0 left-0 w-full h-full -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.1),transparent)]" />
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >

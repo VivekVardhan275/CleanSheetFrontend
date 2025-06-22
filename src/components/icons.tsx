@@ -9,31 +9,16 @@ export const Logo = (props: SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
+    <rect width="24" height="24" rx="6" className="fill-primary" />
     <path
-      d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-      className="stroke-primary"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M12 15.5C13.3807 15.5 14.5 14.3807 14.5 13C14.5 11.6193 13.3807 10.5 12 10.5C10.6193 10.5 9.5 11.6193 9.5 13C9.5 14.3807 10.6193 15.5 12 15.5Z"
+      stroke="hsl(var(--primary-foreground))"
+      strokeWidth="1.5"
     />
     <path
-      d="M12 17V7"
-      className="stroke-accent"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M9 17v-4"
-      className="stroke-accent"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M15 17v-7"
-      className="stroke-accent"
-      strokeWidth="2"
+      d="M12 10.5V8.5L14.5 7"
+      stroke="hsl(var(--primary-foreground))"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />

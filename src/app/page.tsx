@@ -15,22 +15,10 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [typedText, setTypedText] = useState('');
-
-  const fullText = "Welcome to CleanSheet";
 
   useEffect(() => {
     resetData();
   }, [resetData]);
-
-  useEffect(() => {
-    if (typedText.length < fullText.length) {
-      const timer = setTimeout(() => {
-        setTypedText(fullText.substring(0, typedText.length + 1));
-      }, 75);
-      return () => clearTimeout(timer);
-    }
-  }, [typedText, fullText]);
 
   const handleProcess = () => {
     const source = file || url;
@@ -42,49 +30,67 @@ export default function Home() {
       });
       return;
     }
+    
+    // Clear the other source to avoid confusion
+    if (file) setUrl('');
+    if (url) setFile(null);
 
     setIsProcessing(true);
     loadData(source);
   };
 
   useEffect(() => {
-    // Navigate when processing is initiated and data has been loaded (isLoading becomes false)
     if (isProcessing && !isLoading && data.length > 0) {
       router.push('/clean');
-    }
-    // If processing stops for any other reason (e.g. error), reset the button
-    else if (!isLoading) {
-        setIsProcessing(false);
+    } else if (!isLoading) {
+      setIsProcessing(false);
     }
   }, [isLoading, isProcessing, data, router]);
 
+  const handleFileSelected = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    if (selectedFile) {
+        setUrl(''); // Clear URL if a file is selected
+    }
+  }
+
+  const handleUrlChanged = (newUrl: string) => {
+      setUrl(newUrl);
+      if (newUrl) {
+          setFile(null); // Clear file if a URL is entered
+      }
+  }
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-2xl mx-auto text-center">
-        <div className="mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground min-h-[60px] sm:min-h-[72px]">
-            {typedText}
-            <span className="animate-blink text-muted-foreground">|</span>
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            The intelligent tool to clean, preprocess, and analyze your datasets
-            effortlessly. Get started by uploading your data.
-          </p>
+    <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="space-y-4">
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+                Clean Your Data Effortlessly
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                The intelligent tool to clean, preprocess, and analyze your datasets.
+                Get started by uploading a file or providing a URL.
+            </p>
         </div>
 
-        <div className="animate-in fade-in-0 slide-in-from-top-16 duration-700">
-          <FileUploader
-            onFileSelect={setFile}
-            onUrlChange={setUrl}
-            disabled={isLoading || isProcessing}
-          />
+        <div className="animate-in fade-in-0 slide-in-from-top-16 duration-700 w-full">
+            <FileUploader
+                onFileSelect={handleFileSelected}
+                onUrlChange={handleUrlChanged}
+                disabled={isLoading || isProcessing}
+                urlValue={url}
+            />
+             {file && (
+                <p className="text-sm mt-4 text-muted-foreground animate-in fade-in-0 duration-500">Selected file: {file.name}</p>
+             )}
         </div>
 
         <div className="mt-8 animate-in fade-in-0 slide-in-from-top-20 duration-900">
           <Button
             size="lg"
             onClick={handleProcess}
-            disabled={isLoading || isProcessing}
+            disabled={isLoading || isProcessing || (!file && !url)}
             className="w-full sm:w-auto"
           >
             {(isLoading || isProcessing) ? (
