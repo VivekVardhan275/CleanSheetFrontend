@@ -12,35 +12,6 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 
-const MOCK_EDA_HTML = `
-  <h1>EDA Report: Customer Dataset</h1>
-  <p>This report provides an exploratory data analysis of the processed customer dataset. It covers key aspects such as data quality, distributions, and relationships between variables.</p>
-  
-  <h2>Dataset Overview</h2>
-  <blockquote>This dataset contains 10 rows and 5 columns, detailing customer information including their age, city, and occupation.</blockquote>
-  
-  <h2>Data Quality: Missing Values</h2>
-  <p>The following table shows columns that originally contained missing values. These have been handled during the cleaning process.</p>
-  <table>
-    <thead>
-        <tr><th>Column Name</th><th>Missing Values Found</th><th>Imputation Strategy</th></tr>
-    </thead>
-    <tbody>
-        <tr><td>Age</td><td>1</td><td>Mean Imputation</td></tr>
-        <tr><td>Occupation</td><td>1</td><td>Mode Imputation</td></tr>
-    </tbody>
-  </table>
-
-  <h2>Visualizations</h2>
-  <h3>Age Distribution</h3>
-  <p>A histogram of the 'Age' column reveals the age distribution of customers. Most customers are in their late 20s to mid-30s.</p>
-  <img src="https://placehold.co/600x400.png" data-ai-hint="bar chart" alt="Age Distribution Histogram" />
-  
-  <h3>Occupation by City</h3>
-  <p>This chart illustrates the distribution of various occupations across different cities, highlighting professional hubs.</p>
-  <img src="https://placehold.co/600x400.png" data-ai-hint="data visualization" alt="Occupation by City" />
-`;
-
 // Define the schema type
 type DataSchema = {
   allColumns: string[];
@@ -52,9 +23,10 @@ type DataSchema = {
 interface DataContextType {
   data: Record<string, any>[];
   headers: string[];
-  schema: DataSchema | null; // Add schema to the context type
+  schema: DataSchema | null;
   edaHtml: string | null;
   loadData: (source: File | string) => void;
+  setProcessedOutput: (cleanedData: Record<string, any>[], edaHtml: string) => void;
   isLoading: boolean;
   resetData: () => void;
 }
@@ -64,7 +36,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export function DataProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<Record<string, any>[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
-  const [schema, setSchema] = useState<DataSchema | null>(null); // Add schema state
+  const [schema, setSchema] = useState<DataSchema | null>(null);
   const [edaHtml, setEdaHtml] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -72,9 +44,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const resetData = useCallback(() => {
     setData([]);
     setHeaders([]);
-    setSchema(null); // Reset schema
+    setSchema(null);
     setEdaHtml(null);
     setIsLoading(false);
+  }, []);
+
+  const setProcessedOutput = useCallback((cleanedData: Record<string, any>[], edaReportHtml: string) => {
+    if (cleanedData.length > 0) {
+      const newHeaders = Object.keys(cleanedData[0]);
+      setData(cleanedData);
+      setHeaders(newHeaders);
+    }
+    setEdaHtml(edaReportHtml);
+    // The original schema is for the raw data, which is no longer the primary focus.
+    // We can nullify it to prevent using stale schema information.
+    setSchema(null);
   }, []);
 
   const processAndSetData = useCallback((parsedData: Record<string, any>[], parsedHeaders: string[]) => {
@@ -82,7 +66,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
           Object.values(row).some(val => val !== null && val !== '' && val !== undefined)
       );
 
-      // Generate schema from the data
       const allColumns = [...parsedHeaders];
       const numericColumns: string[] = [];
       const categoricalColumns: string[] = [];
@@ -135,9 +118,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       setData(filteredData);
       setHeaders(parsedHeaders);
-      setSchema(newSchema); // Set the generated schema
-      // Simulate receiving the EDA HTML from a backend process
-      setEdaHtml(MOCK_EDA_HTML);
+      setSchema(newSchema);
       setIsLoading(false);
   }, []);
 
@@ -212,12 +193,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     data,
     headers,
-    schema, // Pass schema in the context value
+    schema,
     edaHtml,
     loadData,
+    setProcessedOutput,
     isLoading,
     resetData,
-  }), [data, headers, schema, edaHtml, loadData, isLoading, resetData]);
+  }), [data, headers, schema, edaHtml, loadData, setProcessedOutput, isLoading, resetData]);
 
   return (
     <DataContext.Provider value={value}>
