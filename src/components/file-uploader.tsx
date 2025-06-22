@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Paperclip } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,12 @@ export function FileUploader({
   fileIsSelected,
 }: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!fileIsSelected && fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  }, [fileIsSelected]);
 
   const handleFileClick = () => {
     fileInputRef.current?.click();

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function Home() {
@@ -94,6 +94,10 @@ export default function Home() {
       }
   }
 
+  const handleClearFile = () => {
+    setFile(null);
+  };
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -116,7 +120,12 @@ export default function Home() {
                 fileIsSelected={!!file}
             />
              {file && (
-                <p className="text-sm mt-4 text-muted-foreground animate-in fade-in-0 duration-500">Selected file: {file.name}</p>
+                <div className="text-sm mt-4 text-muted-foreground animate-in fade-in-0 duration-500 flex items-center justify-center gap-2">
+                    <span>Selected file: {file.name}</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={handleClearFile} aria-label="Deselect file">
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
              )}
         </div>
 
