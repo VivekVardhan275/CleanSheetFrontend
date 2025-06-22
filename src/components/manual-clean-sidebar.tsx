@@ -100,7 +100,7 @@ export function ManualCleanSidebar({
 
           <AccordionItem value="item-2">
             <AccordionTrigger>Step 2: Missing Value Imputation</AccordionTrigger>
-            <AccordionContent className="space-y-4">
+            <AccordionContent className="space-y-4 max-h-60 overflow-y-auto p-1">
               {columnsWithMissingValues.length > 0 ? (
                 <>
                   <p className="text-sm text-muted-foreground mb-2">
@@ -177,7 +177,7 @@ export function ManualCleanSidebar({
               <AccordionTrigger>
                 Step 4: Categorical Data Encoding
               </AccordionTrigger>
-              <AccordionContent className="space-y-4">
+              <AccordionContent className="space-y-4 max-h-60 overflow-y-auto p-1">
                 <p className="text-sm text-muted-foreground mb-2">
                   Convert text categories to numerical representations.
                 </p>
@@ -205,7 +205,7 @@ export function ManualCleanSidebar({
           {numericColumns.length > 0 && (
             <AccordionItem value="item-5">
                 <AccordionTrigger>Step 5: Numerical Feature Scaling</AccordionTrigger>
-                <AccordionContent className="space-y-4">
+                <AccordionContent className="space-y-4 max-h-60 overflow-y-auto p-1">
                 <p className="text-sm text-muted-foreground mb-2">
                     Normalize the range of numerical features.
                 </p>
