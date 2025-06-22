@@ -15,10 +15,22 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  const fullText = 'Clean Your Data Effortlessly';
+  const [displayedText, setDisplayedText] = useState('');
 
   useEffect(() => {
     resetData();
   }, [resetData]);
+
+  useEffect(() => {
+    if (displayedText.length < fullText.length) {
+      const timer = setTimeout(() => {
+        setDisplayedText(fullText.slice(0, displayedText.length + 1));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [displayedText, fullText]);
 
   const handleProcess = () => {
     const source = file || url;
@@ -31,7 +43,6 @@ export default function Home() {
       return;
     }
     
-    // Clear the other source to avoid confusion
     if (file) setUrl('');
     if (url) setFile(null);
 
@@ -50,14 +61,14 @@ export default function Home() {
   const handleFileSelected = (selectedFile: File | null) => {
     setFile(selectedFile);
     if (selectedFile) {
-        setUrl(''); // Clear URL if a file is selected
+        setUrl('');
     }
   }
 
   const handleUrlChanged = (newUrl: string) => {
       setUrl(newUrl);
       if (newUrl) {
-          setFile(null); // Clear file if a URL is entered
+          setFile(null);
       }
   }
 
@@ -65,8 +76,9 @@ export default function Home() {
     <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
-                Clean Your Data Effortlessly
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight min-h-[144px] md:min-h-[96px] lg:min-h-[72px]">
+                {displayedText}
+                <span className="inline-block w-1.5 h-[50px] md:h-[60px] ml-2 bg-foreground align-middle animate-blink"></span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 The intelligent tool to clean, preprocess, and analyze your datasets.
