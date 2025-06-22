@@ -40,9 +40,18 @@ const MOCK_EDA_HTML = `
   <img src="https://placehold.co/600x400.png" data-ai-hint="data visualization" alt="Occupation by City" />
 `;
 
+// Define the schema type
+type DataSchema = {
+  allColumns: string[];
+  numericColumns: string[];
+  categoricalColumns: string[];
+  columnsWithMissingValues: { name: string; type: 'numeric' | 'categorical' }[];
+};
+
 interface DataContextType {
   data: Record<string, any>[];
   headers: string[];
+  schema: DataSchema | null; // Add schema to the context type
   edaHtml: string | null;
   loadData: (source: File | string) => void;
   isLoading: boolean;
@@ -54,25 +63,79 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export function DataProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<Record<string, any>[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
+  const [schema, setSchema] = useState<DataSchema | null>(null); // Add schema state
   const [edaHtml, setEdaHtml] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const resetData = useCallback(() => {
     setData([]);
     setHeaders([]);
+    setSchema(null); // Reset schema
     setEdaHtml(null);
     setIsLoading(false);
   }, []);
-  
+
   const processAndSetData = useCallback((parsedData: Record<string, any>[], parsedHeaders: string[]) => {
-      const filteredData = parsedData.filter(row => 
+      const filteredData = parsedData.filter(row =>
           Object.values(row).some(val => val !== null && val !== '' && val !== undefined)
       );
 
+      // Generate schema from the data
+      const allColumns = [...parsedHeaders];
+      const numericColumns: string[] = [];
+      const categoricalColumns: string[] = [];
+      const columnsWithMissingValues: { name: string; type: 'numeric' | 'categorical' }[] = [];
+
+      parsedHeaders.forEach(header => {
+          let isNumeric = true;
+          let hasMissing = false;
+          let hasValues = false;
+
+          const sample = filteredData.slice(0, 100);
+
+          for (const row of sample) {
+              const value = row[header];
+              if (value === null || value === undefined || String(value).trim() === '') {
+                  hasMissing = true;
+              } else {
+                  hasValues = true;
+                  if (typeof value !== 'number' || isNaN(Number(value))) {
+                      isNumeric = false;
+                  }
+              }
+          }
+          
+          const columnType = (isNumeric && hasValues) ? 'numeric' : 'categorical';
+
+          if (columnType === 'numeric') {
+              numericColumns.push(header);
+          } else {
+              categoricalColumns.push(header);
+          }
+          
+          if (hasMissing) {
+              const hasMissingInFull = filteredData.some(row => row[header] === null || row[header] === undefined || String(row[header]).trim() === '');
+              if (hasMissingInFull) {
+                  columnsWithMissingValues.push({
+                      name: header,
+                      type: columnType,
+                  });
+              }
+          }
+      });
+
+      const newSchema: DataSchema = {
+          allColumns,
+          numericColumns,
+          categoricalColumns,
+          columnsWithMissingValues,
+      };
+
       setData(filteredData);
       setHeaders(parsedHeaders);
+      setSchema(newSchema); // Set the generated schema
       // Simulate receiving the EDA HTML from a backend process
-      setEdaHtml(MOCK_EDA_HTML); 
+      setEdaHtml(MOCK_EDA_HTML);
       setIsLoading(false);
   }, []);
 
@@ -89,7 +152,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const parsedHeaders = results.meta.fields || [];
         processAndSetData(results.data, parsedHeaders);
     };
-    
+
     const handlePapaParseError = (error: any) => {
         console.error('PapaParse error:', error);
         resetData();
@@ -106,7 +169,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         });
         return;
     }
-    
+
     const file = source;
     if (file.name.toLowerCase().endsWith('.csv')) {
         Papa.parse(file, {
@@ -146,11 +209,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     data,
     headers,
+    schema, // Pass schema in the context value
     edaHtml,
     loadData,
     isLoading,
     resetData,
-  }), [data, headers, edaHtml, loadData, isLoading, resetData]);
+  }), [data, headers, schema, edaHtml, loadData, isLoading, resetData]);
 
   return (
     <DataContext.Provider value={value}>
