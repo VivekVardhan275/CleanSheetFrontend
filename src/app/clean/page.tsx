@@ -51,7 +51,7 @@ export default function CleanPage() {
 
       const initialEncoding: { [key: string]: string } = {};
       schema.categoricalColumns.forEach(col => {
-        initialEncoding[col] = 'onehot';
+        initialEncoding[col] = 'none';
       });
 
       const initialScaling: { [key: string]: string } = {};

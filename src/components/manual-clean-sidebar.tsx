@@ -126,6 +126,9 @@ export function ManualCleanSidebar({
                               <SelectItem value="median">
                                 Impute with Median
                               </SelectItem>
+                              <SelectItem value="mode">
+                                Impute with Mode
+                              </SelectItem>
                             </>
                           ) : (
                             <>
@@ -166,7 +169,6 @@ export function ManualCleanSidebar({
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
                   <SelectItem value="iqr">Remove using IQR</SelectItem>
-                  <SelectItem value="zscore">Remove using Z-score</SelectItem>
                 </SelectContent>
               </Select>
             </AccordionContent>
@@ -192,6 +194,7 @@ export function ManualCleanSidebar({
                         <SelectValue placeholder="Select encoding" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
                         <SelectItem value="onehot">One-Hot Encoding</SelectItem>
                         <SelectItem value="label">Label Encoding</SelectItem>
                       </SelectContent>
