@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Logo } from './icons';
 import { ThemeToggle } from './theme-toggle';
-import { Button } from './ui/button';
 
 export function Header() {
   return (
@@ -12,9 +11,6 @@ export function Header() {
           <span className="font-bold inline-block">DataCleanr</span>
         </Link>
         <div className='flex items-center gap-4'>
-            <Button asChild className="rounded-full font-semibold">
-                <Link href="/">Get Started</Link>
-            </Button>
             <ThemeToggle />
         </div>
       </div>
