@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/data-context';
 import {
@@ -18,6 +18,26 @@ export function EdaDashboardClient() {
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [modifiedHtml, setModifiedHtml] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (edaHtml) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(edaHtml, 'text/html');
+
+      const header = doc.querySelector('nav.navbar');
+      if (header) {
+        header.remove();
+      }
+      
+      const footer = doc.querySelector('.footer');
+      if (footer) {
+        footer.remove();
+      }
+
+      setModifiedHtml(doc.documentElement.outerHTML);
+    }
+  }, [edaHtml]);
 
   const handleDownloadReport = () => {
     if (!edaHtml) {
@@ -105,7 +125,7 @@ export function EdaDashboardClient() {
             <CardContent className="p-0 sm:p-0 pt-6">
                 <iframe
                   ref={iframeRef}
-                  srcDoc={edaHtml}
+                  srcDoc={modifiedHtml || ''}
                   title="EDA Report"
                   className="w-full border-0 rounded-lg"
                   style={{ height: '80vh' }}
