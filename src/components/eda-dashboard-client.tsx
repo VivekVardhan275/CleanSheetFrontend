@@ -170,7 +170,6 @@ export function EdaDashboardClient() {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [reportTitle, setReportTitle] = useState('EDA Report');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isIframeLoaded, setIsIframeLoaded] = useState(false);
 
@@ -217,21 +216,6 @@ export function EdaDashboardClient() {
       }
     };
   }, [isIframeLoaded, theme]);
-
-  // Effect to extract the report title
-  useEffect(() => {
-    if (edaHtml) {
-      try {
-        const doc = new DOMParser().parseFromString(edaHtml, 'text/html');
-        const title = doc.querySelector('h1')?.textContent?.trim();
-        if (title) {
-          setReportTitle(title);
-        }
-      } catch (e) {
-        console.warn("Could not parse report title, using default.");
-      }
-    }
-  }, [edaHtml]);
 
   const handleDownloadPdf = async () => {
     const iframe = iframeRef.current;
@@ -332,7 +316,7 @@ export function EdaDashboardClient() {
       </div>
         <Card className="rounded-2xl shadow-lg overflow-hidden">
             <CardHeader>
-                <CardTitle>{reportTitle}</CardTitle>
+                <CardTitle>Exploratory Data Analysis</CardTitle>
             </CardHeader>
             <CardContent className="p-0 sm:p-0 -mt-6">
                 <iframe
