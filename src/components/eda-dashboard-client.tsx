@@ -23,35 +23,37 @@ export function EdaDashboardClient() {
       title: 'Generating PDF...',
       description: 'Please wait while we prepare your report.',
     });
-    
-    // Temporarily set theme to light for consistent PDF output
-    const originalTheme = document.documentElement.className;
-    document.documentElement.className = 'light';
-    
-    // Allow styles to apply before capturing
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
       const dashboardElement = dashboardRef.current;
+      
       const canvas = await html2canvas(dashboardElement, {
         scale: 2, // Higher scale for better quality
-        useCORS: true, // For images from other origins
-        backgroundColor: '#ffffff', // Ensure a solid background
-        scrollX: -window.scrollX,
-        scrollY: -window.scrollY,
-        windowWidth: dashboardElement.scrollWidth,
-        windowHeight: dashboardElement.scrollHeight,
+        useCORS: true,
+        backgroundColor: '#ffffff', // Ensure a solid white background for the canvas
+        onclone: (document) => {
+          // In the cloned document used for rendering, remove the dark class
+          // This ensures all text and elements render in their light-theme style
+          document.documentElement.classList.remove('dark');
+        },
       });
       
       const imgData = canvas.toDataURL('image/png');
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
       
+      // Define a margin in pixels (since canvas units are pixels)
+      const margin = 80;
+      
+      // Create a new PDF with dimensions that include margins
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'px',
-        format: [canvas.width, canvas.height]
+        format: [imgWidth + margin * 2, imgHeight + margin * 2],
       });
       
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      // Add the captured image to the PDF, offset by the margin
+      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
       pdf.save('eda-report.pdf');
 
     } catch (err) {
@@ -63,8 +65,6 @@ export function EdaDashboardClient() {
       });
     } finally {
       setIsDownloading(false);
-      // Restore original theme
-      document.documentElement.className = originalTheme;
     }
   };
 
