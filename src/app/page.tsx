@@ -108,8 +108,7 @@ export default function Home() {
                 <span className="inline-block w-1.5 h-[50px] md:h-[60px] ml-2 bg-foreground align-middle animate-blink"></span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                The intelligent tool to clean, preprocess, and analyze your datasets.
-                Get started by uploading a file or providing a URL.
+                The intelligent tool to clean, preprocess, and analyze your datasets. Get started by uploading a file (.csv or .xlsx) or providing a URL.
             </p>
         </div>
 
