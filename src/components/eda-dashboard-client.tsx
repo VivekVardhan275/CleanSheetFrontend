@@ -2,14 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useData } from '@/context/data-context';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -19,33 +17,16 @@ import {
   AlertTriangle,
   Download,
   ArrowLeft,
-  FileText,
-  BarChart3,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface ParsedReport {
-  title: string;
-  description: string;
-  overview: {
-    title: string | null;
-    content: string | null;
-  };
-  visualizations: {
-    title: string;
-    description: string;
-    imageUrl: string;
-    alt: string;
-  }[];
-}
 
 export function EdaDashboardClient() {
   const { edaHtml } = useData();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [parsedReport, setParsedReport] = useState<ParsedReport | null>(null);
+  const [reportTitle, setReportTitle] = useState('EDA Report');
   const [isParsing, setIsParsing] = useState(true);
-  const dashboardRef = useRef<HTMLDivElement>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (edaHtml) {
@@ -53,47 +34,17 @@ export function EdaDashboardClient() {
       try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(edaHtml, 'text/html');
-
-        const mainTitle = doc.querySelector('h1')?.textContent ?? 'EDA Report';
-        const mainDescription =
-          doc.querySelector('h1')?.nextElementSibling?.tagName === 'P'
-            ? doc.querySelector('h1')?.nextElementSibling?.textContent ??
-              'Key insights from your cleaned dataset.'
-            : 'Key insights from your cleaned dataset.';
-
-        const overviewEl = Array.from(doc.querySelectorAll('h2')).find((h) =>
-          h.textContent?.toLowerCase().includes('overview')
-        );
-        const overviewTitle = overviewEl?.textContent ?? null;
-        const overviewContent = overviewEl?.nextElementSibling?.textContent ?? null;
-
-        const visualizations: ParsedReport['visualizations'] = [];
-        doc.querySelectorAll('h3').forEach((h3) => {
-          const p = h3.nextElementSibling;
-          const img = p?.nextElementSibling;
-
-          if (p?.tagName === 'P' && img?.tagName === 'IMG') {
-            visualizations.push({
-              title: h3.textContent || 'Untitled Visualization',
-              description: p.textContent || '',
-              imageUrl: (img as HTMLImageElement).src,
-              alt: (img as HTMLImageElement).alt,
-            });
-          }
-        });
-
-        setParsedReport({
-          title: mainTitle,
-          description: mainDescription,
-          overview: { title: overviewTitle, content: overviewContent },
-          visualizations,
-        });
+        
+        // Extract the main title for the card header, but render the rest as HTML
+        const title = doc.querySelector('h1')?.textContent ?? 'EDA Report';
+        setReportTitle(title);
+        
       } catch (error) {
-        console.error('Failed to parse EDA report HTML:', error);
+        console.error('Failed to parse EDA report title:', error);
         toast({
           variant: 'destructive',
           title: 'Parsing Error',
-          description: 'Could not parse the EDA report.',
+          description: 'Could not read the report title.',
         });
       } finally {
         setIsParsing(false);
@@ -104,7 +55,7 @@ export function EdaDashboardClient() {
   }, [edaHtml, toast]);
 
   const handleDownloadPdf = async () => {
-    if (!dashboardRef.current || isDownloading) return;
+    if (!reportContentRef.current || isDownloading) return;
 
     setIsDownloading(true);
     toast({
@@ -113,13 +64,14 @@ export function EdaDashboardClient() {
     });
 
     try {
-      const dashboardElement = dashboardRef.current;
+      const reportElement = reportContentRef.current;
 
-      const canvas = await html2canvas(dashboardElement, {
+      const canvas = await html2canvas(reportElement, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#ffffff', // Force a white background for the PDF
         onclone: (document) => {
+          // Ensure the PDF is generated with a light theme for readability
           document.documentElement.classList.remove('dark');
         },
       });
@@ -127,16 +79,15 @@ export function EdaDashboardClient() {
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-
-      const margin = 80;
-
+      
       const pdf = new jsPDF({
-        orientation: 'p',
+        orientation: imgWidth > imgHeight ? 'l' : 'p',
         unit: 'px',
-        format: [imgWidth + margin * 2, imgHeight + margin * 2],
+        format: [imgWidth, imgHeight],
+        hotfixes: ['px_scaling'],
       });
 
-      pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
       pdf.save('eda-report_CleanSheet.pdf');
     } catch (err) {
       console.error('Failed to generate PDF:', err);
@@ -154,7 +105,7 @@ export function EdaDashboardClient() {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4 text-center">
         <Loader2 className="h-12 w-12 animate-spin" />
-        <h2 className="text-xl font-semibold">Parsing Report...</h2>
+        <h2 className="text-xl font-semibold">Preparing Report...</h2>
         <p className="text-muted-foreground">
           Please wait while we prepare the analysis.
         </p>
@@ -162,7 +113,7 @@ export function EdaDashboardClient() {
     );
   }
 
-  if (!edaHtml || !parsedReport) {
+  if (!edaHtml) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4 text-center">
         <AlertTriangle className="h-12 w-12 text-destructive" />
@@ -178,8 +129,8 @@ export function EdaDashboardClient() {
     <div className="animate-in fade-in-0 duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{parsedReport.title}</h1>
-          <p className="text-muted-foreground">{parsedReport.description}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Exploratory Data Analysis</h1>
+          <p className="text-muted-foreground">A complete overview of your dataset's characteristics.</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <Button onClick={handleDownloadPdf} disabled={isDownloading}>
@@ -199,57 +150,18 @@ export function EdaDashboardClient() {
         </div>
       </div>
 
-      <div ref={dashboardRef} className="space-y-8 bg-background p-4 sm:p-0">
-        {parsedReport.overview.title && parsedReport.overview.content && (
-          <Card className="rounded-2xl shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <FileText className="h-6 w-6" />
-                {parsedReport.overview.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                {parsedReport.overview.content}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {parsedReport.visualizations.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight mb-4 flex items-center gap-3">
-              <BarChart3 className="h-6 w-6" />
-              Visualizations
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {parsedReport.visualizations.map((viz, index) => (
-                <Card
-                  key={index}
-                  className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden"
-                >
-                  <CardHeader>
-                    <CardTitle>{viz.title}</CardTitle>
-                    <CardDescription>{viz.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="relative aspect-video rounded-lg overflow-hidden border">
-                      <Image
-                        src={viz.imageUrl}
-                        alt={viz.alt}
-                        width={600}
-                        height={400}
-                        className="object-cover"
-                        data-ai-hint="chart visualization"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <Card className="rounded-2xl shadow-lg">
+         <CardHeader>
+           <CardTitle>{reportTitle}</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div
+             ref={reportContentRef}
+             className="prose max-w-none"
+             dangerouslySetInnerHTML={{ __html: edaHtml }}
+           />
+         </CardContent>
+      </Card>
     </div>
   );
 }
