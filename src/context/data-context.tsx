@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import { useToast } from '@/hooks/use-toast';
 
 const MOCK_EDA_HTML = `
   <h1>EDA Report: Customer Dataset</h1>
@@ -66,6 +67,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [schema, setSchema] = useState<DataSchema | null>(null); // Add schema state
   const [edaHtml, setEdaHtml] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const resetData = useCallback(() => {
     setData([]);
@@ -143,19 +145,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const loadData = useCallback((source: File | string) => {
     setIsLoading(true);
 
+    const handleError = (message: string, error?: any) => {
+      console.error(message, error || '');
+      toast({
+        variant: 'destructive',
+        title: 'Failed to load data',
+        description: 'The file could not be read. Please check the format and try again.',
+      });
+      resetData();
+    };
+
     const handlePapaParseComplete = (results: Papa.ParseResult<Record<string, any>>) => {
         if (results.errors.length) {
-            console.error('Parsing errors:', results.errors);
-            resetData();
+            handleError('Parsing errors:', results.errors);
             return;
         }
         const parsedHeaders = results.meta.fields || [];
         processAndSetData(results.data, parsedHeaders);
-    };
-
-    const handlePapaParseError = (error: any) => {
-        console.error('PapaParse error:', error);
-        resetData();
     };
 
     if (typeof source === 'string') {
@@ -165,7 +171,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             dynamicTyping: true,
             download: true,
             complete: handlePapaParseComplete,
-            error: handlePapaParseError,
+            error: (err) => handleError('PapaParse error:', err),
         });
         return;
     }
@@ -177,7 +183,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             skipEmptyLines: true,
             dynamicTyping: true,
             complete: handlePapaParseComplete,
-            error: handlePapaParseError,
+            error: (err) => handleError('PapaParse error:', err),
         });
     } else if (file.name.toLowerCase().endsWith('.xlsx')) {
         const reader = new FileReader();
@@ -191,20 +197,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 const jsonHeaders = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
                 processAndSetData(jsonData, jsonHeaders);
             } catch (error) {
-                console.error('Error parsing XLSX file:', error);
-                resetData();
+                handleError('Error parsing XLSX file:', error);
             }
         };
         reader.onerror = (error) => {
-            console.error('FileReader error:', error);
-            resetData();
+            handleError('FileReader error:', error);
         };
         reader.readAsBinaryString(file);
     } else {
-        console.error('Unsupported file type');
-        resetData();
+        handleError('Unsupported file type');
     }
-  }, [resetData, processAndSetData]);
+  }, [resetData, processAndSetData, toast]);
 
   const value = useMemo(() => ({
     data,
