@@ -39,7 +39,7 @@ export default function DownloadPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', 'cleaned_data.csv');
+      link.setAttribute('download', 'cleaned_data_CleanSheet.csv');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

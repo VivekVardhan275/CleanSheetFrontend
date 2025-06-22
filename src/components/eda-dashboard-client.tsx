@@ -54,7 +54,7 @@ export function EdaDashboardClient() {
       
       // Add the captured image to the PDF, offset by the margin
       pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-      pdf.save('eda-report.pdf');
+      pdf.save('eda-report_CleanSheet.pdf');
 
     } catch (err) {
       console.error('Failed to generate PDF:', err);
