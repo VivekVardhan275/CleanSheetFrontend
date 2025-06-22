@@ -73,32 +73,39 @@
     @apply max-w-none text-foreground;
   }
   .prose h1, .prose h2, .prose h3, .prose h4 {
-    @apply font-bold tracking-tight mt-6 mb-4;
+    @apply font-bold tracking-tight mt-8 mb-6 border-b-0;
   }
-  .prose h1 { @apply text-4xl border-b pb-2; }
-  .prose h2 { @apply text-3xl border-b pb-2; }
-  .prose h3 { @apply text-2xl; }
-  .prose h4 { @apply text-xl; }
+  .prose h1, .prose h2 { @apply text-4xl pb-0; }
+  .prose h3 { @apply text-2xl pb-0; }
+  .prose h4 { @apply text-xl pb-0; }
+
   .prose p, .prose ul, .prose ol, .prose blockquote {
     @apply leading-7 mb-4;
   }
   .prose ul, .prose ol { @apply pl-6; }
   .prose ul { @apply list-disc; }
   .prose ol { @apply list-decimal; }
-  .prose a { @apply text-primary underline; }
-  .prose img { @apply rounded-lg shadow-md my-6 w-full max-w-2xl mx-auto; }
+  .prose a { @apply text-primary hover:underline; }
+  .prose img { @apply rounded-lg shadow-md my-6 w-full max-w-full mx-auto; }
+
+  /* EDA Report Table Styles */
   .prose table {
-    @apply w-full my-6 border-collapse text-left;
+    @apply w-full my-4 border-collapse;
+    background: transparent !important;
   }
   .prose thead {
-    @apply border-b;
+    @apply border-b-0;
   }
   .prose th {
-    @apply p-3 font-semibold bg-muted;
+    @apply p-3 font-semibold bg-transparent text-left;
   }
   .prose td {
-    @apply p-3 border-b;
+    @apply p-3 border-b border-border/40;
   }
+  .prose table tr:last-child > td {
+      @apply border-b-0;
+  }
+
   .prose blockquote {
     @apply border-l-4 pl-4 italic text-muted-foreground;
   }
@@ -109,11 +116,51 @@
     @apply bg-muted p-4 rounded-lg overflow-x-auto;
   }
 
+  /* EDA Report Layout & Tab Styles */
+  .prose .row {
+    @apply flex flex-wrap -mx-4;
+  }
+  .prose .col-sm-6 {
+    @apply w-full md:w-1/2 px-4;
+  }
+  .prose .nav-tabs {
+    @apply border-b border-border mb-6 flex space-x-1 list-none p-0;
+  }
+  .prose .nav-item {
+    @apply m-0;
+  }
+  .prose .nav-link {
+    @apply px-4 py-2 rounded-md text-sm font-medium transition-colors;
+    @apply text-muted-foreground bg-transparent hover:bg-muted/50 hover:text-foreground;
+  }
+  .prose .nav-link.active {
+    @apply bg-background text-foreground shadow-sm;
+  }
+  .prose .badge {
+    @apply ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full;
+    @apply bg-muted text-muted-foreground;
+  }
+  .prose .progress {
+    @apply h-2.5 rounded-full bg-muted overflow-hidden flex;
+  }
+  .prose .progress-bar {
+    @apply bg-primary;
+  }
+
+  /* Hide unwanted report elements */
+  .prose .navbar, .prose .footer, .prose .pull-right {
+    @apply hidden;
+  }
+
+  /* Dark mode overrides for EDA report */
   .dark .prose {
     @apply text-foreground;
   }
   .dark .prose a { @apply text-primary; }
-  .dark .prose th { @apply bg-muted/50; }
+  .dark .prose td { @apply border-border/20; }
+  .dark .prose .nav-link.active {
+    @apply bg-card text-card-foreground;
+  }
   .dark .prose blockquote {
     @apply border-primary text-muted-foreground;
   }
