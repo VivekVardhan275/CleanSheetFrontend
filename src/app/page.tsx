@@ -42,9 +42,36 @@ export default function Home() {
       });
       return;
     }
+
+    if (url) {
+      try {
+        // Check for valid URL structure
+        new URL(url);
+      } catch (_) {
+        toast({
+          variant: 'destructive',
+          title: 'Invalid URL',
+          description: 'Please enter a valid URL.',
+        });
+        return;
+      }
+
+      // Check for valid file extension
+      const lowercasedUrl = url.toLowerCase();
+      if (!lowercasedUrl.endsWith('.csv') && !lowercasedUrl.endsWith('.xlsx')) {
+        toast({
+          variant: 'destructive',
+          title: 'Unsupported File Type',
+          description: 'The URL must point to a .csv or .xlsx file.',
+        });
+        return;
+      }
+      setFile(null);
+    }
     
-    if (file) setUrl('');
-    if (url) setFile(null);
+    if (file) {
+        setUrl('');
+    }
 
     setIsProcessing(true);
     loadData(source);
