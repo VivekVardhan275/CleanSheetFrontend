@@ -75,7 +75,11 @@
   .prose h1, .prose h2, .prose h3, .prose h4 {
     @apply font-bold tracking-tight mt-8 mb-6 border-b-0;
   }
-  .prose h1, .prose h2 { @apply text-4xl pb-0; }
+  /* The main title from the report is hidden because we show it in the CardHeader */
+  .prose > h1:first-child {
+      @apply hidden;
+  }
+  .prose h2 { @apply text-3xl pb-0; }
   .prose h3 { @apply text-2xl pb-0; }
   .prose h4 { @apply text-xl pb-0; }
 
