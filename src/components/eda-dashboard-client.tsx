@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/data-context';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import {
   Card,
   CardContent,
@@ -173,7 +171,7 @@ export function EdaDashboardClient() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isIframeLoaded, setIsIframeLoaded] = useState(false);
 
-  // Effect to style and observe the iframe once it's loaded
+  // Effect to style the iframe once it's loaded
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !isIframeLoaded || !iframe.contentDocument) {
@@ -194,22 +192,8 @@ export function EdaDashboardClient() {
     fontLink.rel = 'stylesheet';
     doc.head.appendChild(fontLink);
 
-    // Auto-adjust iframe height to content
-    const resizeIframe = () => {
-      if (iframe && doc.body.scrollHeight > 0) {
-        iframe.style.height = doc.body.scrollHeight + 50 + 'px';
-      }
-    };
-
-    const observer = new MutationObserver(resizeIframe);
-    observer.observe(doc.body, { childList: true, subtree: true, attributes: true });
-
-    const timeoutId = setTimeout(resizeIframe, 300);
-
     // Cleanup function
     return () => {
-      observer.disconnect();
-      clearTimeout(timeoutId);
       // Reset loaded state if edaHtml changes so the effect can re-run
       if (isIframeLoaded) {
         setIsIframeLoaded(false); 
@@ -217,56 +201,38 @@ export function EdaDashboardClient() {
     };
   }, [isIframeLoaded, theme]);
 
-  const handleDownloadPdf = async () => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentWindow || !iframe.contentDocument || isDownloading) return;
-
+  const handleDownloadReport = () => {
+    if (!edaHtml) {
+        toast({
+            variant: 'destructive',
+            title: 'Download Failed',
+            description: 'The report content is not available to download.',
+        });
+        return;
+    }
+    
     setIsDownloading(true);
     toast({
-      title: 'Generating PDF...',
-      description: 'Please wait while we prepare your report.',
+        title: 'Preparing Report...',
+        description: 'Your download will begin shortly.',
     });
 
     try {
-        const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        const canvas = await html2canvas(iframe.contentDocument.body, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: isDark ? '#0A0810' : '#F9FAFB', // Match theme bg
-        windowWidth: iframe.contentDocument.body.scrollWidth,
-        windowHeight: iframe.contentDocument.body.scrollHeight,
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'px',
-        format: 'a4',
-        hotfixes: ['px_scaling'],
-      });
-
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save('eda-report_CleanSheet.pdf');
+        const blob = new Blob([edaHtml], { type: 'text/html;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'eda-report_CleanSheet.html');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Failed to generate PDF:', err);
+      console.error('Failed to download report:', err);
       toast({
         variant: 'destructive',
-        title: 'PDF Generation Failed',
-        description: 'An error occurred while creating the PDF. Please try again.',
+        title: 'Download Failed',
+        description: 'An error occurred while creating the report file.',
       });
     } finally {
       setIsDownloading(false);
@@ -298,13 +264,13 @@ export function EdaDashboardClient() {
           <p className="text-muted-foreground">A dynamic overview of your dataset's characteristics.</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Button onClick={handleDownloadPdf} disabled={isDownloading}>
+          <Button onClick={handleDownloadReport} disabled={isDownloading}>
             {isDownloading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            {isDownloading ? 'Generating...' : 'Download PDF'}
+            {isDownloading ? 'Preparing...' : 'Download Report (.html)'}
           </Button>
            <Link href="/download">
             <Button size="lg" className="w-full sm:w-auto" variant="outline">
@@ -323,10 +289,9 @@ export function EdaDashboardClient() {
                   ref={iframeRef}
                   srcDoc={edaHtml}
                   title="EDA Report"
-                  className="w-full border-0"
-                  style={{ height: '100vh' }}
+                  className="w-full border-0 rounded-lg"
+                  style={{ height: '80vh' }}
                   sandbox="allow-scripts allow-same-origin"
-                  scrolling="no"
                   onLoad={() => setIsIframeLoaded(true)}
                 />
             </CardContent>
