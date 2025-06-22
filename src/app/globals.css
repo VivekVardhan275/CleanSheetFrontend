@@ -67,3 +67,57 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .prose {
+    @apply max-w-none text-foreground;
+  }
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    @apply font-bold tracking-tight mt-6 mb-4;
+  }
+  .prose h1 { @apply text-4xl border-b pb-2; }
+  .prose h2 { @apply text-3xl border-b pb-2; }
+  .prose h3 { @apply text-2xl; }
+  .prose h4 { @apply text-xl; }
+  .prose p, .prose ul, .prose ol, .prose blockquote {
+    @apply leading-7 mb-4;
+  }
+  .prose ul, .prose ol { @apply pl-6; }
+  .prose ul { @apply list-disc; }
+  .prose ol { @apply list-decimal; }
+  .prose a { @apply text-primary underline; }
+  .prose img { @apply rounded-lg shadow-md my-6 w-full max-w-2xl mx-auto; }
+  .prose table {
+    @apply w-full my-6 border-collapse text-left;
+  }
+  .prose thead {
+    @apply border-b;
+  }
+  .prose th {
+    @apply p-3 font-semibold bg-muted;
+  }
+  .prose td {
+    @apply p-3 border-b;
+  }
+  .prose blockquote {
+    @apply border-l-4 pl-4 italic text-muted-foreground;
+  }
+  .prose code {
+    @apply rounded bg-muted px-1.5 py-1 font-mono text-sm;
+  }
+  .prose pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto;
+  }
+
+  .dark .prose {
+    @apply text-foreground;
+  }
+  .dark .prose a { @apply text-primary; }
+  .dark .prose th { @apply bg-muted/50; }
+  .dark .prose blockquote {
+    @apply border-primary text-muted-foreground;
+  }
+  .dark .prose code {
+    @apply bg-muted/70;
+  }
+}
