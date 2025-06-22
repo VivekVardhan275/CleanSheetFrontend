@@ -284,7 +284,7 @@ export function EdaDashboardClient() {
             <CardHeader>
                 <CardTitle>Exploratory Data Analysis</CardTitle>
             </CardHeader>
-            <CardContent className="p-0 sm:p-0 -mt-6">
+            <CardContent className="p-0 sm:p-0 pt-6">
                 <iframe
                   ref={iframeRef}
                   srcDoc={edaHtml}
