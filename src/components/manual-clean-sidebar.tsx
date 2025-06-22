@@ -16,11 +16,21 @@ import {
 } from '@/components/ui/select';
 import { Wand2 } from 'lucide-react';
 
+export interface ManualConfig {
+  columns_to_drop: string[];
+  imputation: { [col: string]: string };
+  outlier_handling: { method: string };
+  encoding: { [col: string]: string };
+  scaling: { [col: string]: string };
+}
+
 interface ManualCleanSidebarProps {
     allColumns: string[];
     numericColumns: string[];
     categoricalColumns: string[];
     columnsWithMissingValues: { name: string; type: 'numeric' | 'categorical' }[];
+    config: ManualConfig;
+    setConfig: (config: ManualConfig) => void;
 }
 
 export function ManualCleanSidebar({
@@ -28,7 +38,33 @@ export function ManualCleanSidebar({
     numericColumns = [],
     categoricalColumns = [],
     columnsWithMissingValues = [],
+    config,
+    setConfig,
 }: ManualCleanSidebarProps) {
+
+  const handleColumnDropChange = (column: string, checked: boolean) => {
+    const newDroppedColumns = checked
+      ? config.columns_to_drop.filter(c => c !== column)
+      : [...config.columns_to_drop, column];
+    setConfig({ ...config, columns_to_drop: newDroppedColumns });
+  };
+
+  const handleImputationChange = (column: string, value: string) => {
+    setConfig({ ...config, imputation: { ...config.imputation, [column]: value } });
+  };
+
+  const handleOutlierChange = (value: string) => {
+    setConfig({ ...config, outlier_handling: { method: value } });
+  };
+
+  const handleEncodingChange = (column: string, value: string) => {
+    setConfig({ ...config, encoding: { ...config.encoding, [column]: value } });
+  };
+
+  const handleScalingChange = (column: string, value: string) => {
+    setConfig({ ...config, scaling: { ...config.scaling, [column]: value } });
+  };
+
   return (
     <Card className="rounded-2xl shadow-lg">
       <CardHeader>
@@ -51,7 +87,11 @@ export function ManualCleanSidebar({
               </p>
               {allColumns.map((col) => (
                 <div key={col} className="flex items-center space-x-2">
-                  <Checkbox id={`col-${col}`} defaultChecked />
+                  <Checkbox 
+                    id={`col-${col}`} 
+                    checked={!config.columns_to_drop.includes(col)}
+                    onCheckedChange={(checked) => handleColumnDropChange(col, !!checked)}
+                  />
                   <Label htmlFor={`col-${col}`}>{col}</Label>
                 </div>
               ))}
@@ -70,9 +110,8 @@ export function ManualCleanSidebar({
                     <div key={`missing-${col.name}`} className="space-y-2">
                       <Label>{col.name}</Label>
                       <Select
-                        defaultValue={
-                          col.type === 'numeric' ? 'mean' : 'mode'
-                        }
+                        value={config.imputation[col.name]}
+                        onValueChange={(value) => handleImputationChange(col.name, value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select imputation strategy" />
@@ -117,7 +156,10 @@ export function ManualCleanSidebar({
               <p className="text-sm text-muted-foreground mb-2">
                 Select a method to manage extreme values.
               </p>
-              <Select defaultValue="none">
+              <Select 
+                value={config.outlier_handling.method}
+                onValueChange={handleOutlierChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select method" />
                 </SelectTrigger>
@@ -142,7 +184,10 @@ export function ManualCleanSidebar({
                 {categoricalColumns.map((col) => (
                   <div key={`cat-${col}`} className="space-y-2">
                     <Label>{col}</Label>
-                    <Select defaultValue="onehot">
+                    <Select 
+                      value={config.encoding[col]}
+                      onValueChange={(value) => handleEncodingChange(col, value)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select encoding" />
                       </SelectTrigger>
@@ -167,7 +212,10 @@ export function ManualCleanSidebar({
                 {numericColumns.map((col) => (
                     <div key={`scale-${col}`} className="space-y-2">
                         <Label>{col}</Label>
-                        <Select defaultValue="none">
+                        <Select 
+                          value={config.scaling[col]}
+                          onValueChange={(value) => handleScalingChange(col, value)}
+                        >
                         <SelectTrigger>
                             <SelectValue placeholder="Select scaling" />
                         </SelectTrigger>

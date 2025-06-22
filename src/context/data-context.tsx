@@ -25,6 +25,7 @@ interface DataContextType {
   headers: string[];
   schema: DataSchema | null;
   edaHtml: string | null;
+  originalSource: File | string | null;
   loadData: (source: File | string) => void;
   setProcessedOutput: (cleanedData: Record<string, any>[], edaHtml: string) => void;
   isLoading: boolean;
@@ -39,6 +40,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [schema, setSchema] = useState<DataSchema | null>(null);
   const [edaHtml, setEdaHtml] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [originalSource, setOriginalSource] = useState<File | string | null>(null);
   const { toast } = useToast();
 
   const resetData = useCallback(() => {
@@ -47,6 +49,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSchema(null);
     setEdaHtml(null);
     setIsLoading(false);
+    setOriginalSource(null);
   }, []);
 
   const setProcessedOutput = useCallback((cleanedData: Record<string, any>[], edaReportHtml: string) => {
@@ -125,6 +128,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const loadData = useCallback((source: File | string) => {
     setIsLoading(true);
+    setOriginalSource(source);
 
     const handleError = (message: string, error?: any) => {
       console.error(message, error || '');
@@ -195,11 +199,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
     headers,
     schema,
     edaHtml,
+    originalSource,
     loadData,
     setProcessedOutput,
     isLoading,
     resetData,
-  }), [data, headers, schema, edaHtml, loadData, setProcessedOutput, isLoading, resetData]);
+  }), [data, headers, schema, edaHtml, originalSource, loadData, setProcessedOutput, isLoading, resetData]);
 
   return (
     <DataContext.Provider value={value}>
