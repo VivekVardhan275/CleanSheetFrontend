@@ -59,19 +59,21 @@ export function EdaDashboardClient() {
   const handleDownloadPdf = async () => {
     if (!dashboardRef.current || isDownloading) return;
 
+    setIsDownloading(true);
+
     // Temporarily set theme to light for consistent PDF output
     const originalTheme = document.documentElement.getAttribute('class');
     document.documentElement.setAttribute('class', 'light');
     
-    // Allow a moment for styles to apply
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    setIsDownloading(true);
+    // Allow more time for styles to apply before capturing
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     try {
       const canvas = await html2canvas(dashboardRef.current, {
         scale: 2,
         useCORS: true,
+        // Set a white background to prevent transparency issues
+        backgroundColor: '#ffffff',
       });
       
       const contentWidth = canvas.width;
@@ -242,8 +244,7 @@ export function EdaDashboardClient() {
                   <Image 
                       src={correlationHeatmapDataUri} 
                       alt="Correlation Heatmap" 
-                      layout="fill"
-                      objectFit="cover"
+                      fill
                       className="rounded-lg"
                       data-ai-hint="data visualization"
                   />

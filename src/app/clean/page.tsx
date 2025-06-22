@@ -39,11 +39,11 @@ export default function CleanPage() {
     setIsProcessing(true);
     toast({
       title: '🤖 Default Cleaning Started',
-      description: 'Your data is being processed. Redirecting to dashboard...',
+      description: 'Your data is being processed. Redirecting...',
     });
     // Simulate backend processing
     setTimeout(() => {
-      router.push('/dashboard');
+      router.push('/download');
     }, 1500);
   };
 
@@ -55,7 +55,7 @@ export default function CleanPage() {
     });
     // Simulate backend processing
     setTimeout(() => {
-      router.push('/dashboard');
+      router.push('/download');
     }, 1500);
   };
 

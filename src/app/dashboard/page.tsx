@@ -1,6 +1,6 @@
 import { EdaDashboardClient } from '@/components/eda-dashboard-client';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -16,9 +16,9 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link href="/download">
-          <Button size="lg" className="w-full sm:w-auto">
-            Proceed to Download
-            <ArrowRight className="ml-2 h-5 w-5" />
+          <Button size="lg" className="w-full sm:w-auto" variant="outline">
+            <ArrowLeft className="mr-2 h-5 w-5" />
+            Back to Downloads
           </Button>
         </Link>
       </div>
