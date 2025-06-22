@@ -27,7 +27,7 @@ export default function Home() {
     if (displayedText.length < fullText.length) {
       const timer = setTimeout(() => {
         setDisplayedText(fullText.slice(0, displayedText.length + 1));
-      }, 100);
+      }, 60);
       return () => clearTimeout(timer);
     }
   }, [displayedText, fullText]);
