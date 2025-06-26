@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -14,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { Wand2 } from 'lucide-react';
 
 export interface ManualConfig {
@@ -33,6 +37,8 @@ interface ManualCleanSidebarProps {
     setConfig: (config: ManualConfig) => void;
 }
 
+const MAX_ITEMS_SHOWN = 50;
+
 export function ManualCleanSidebar({
     allColumns = [],
     numericColumns = [],
@@ -41,6 +47,16 @@ export function ManualCleanSidebar({
     config,
     setConfig,
 }: ManualCleanSidebarProps) {
+  const [expandedLists, setExpandedLists] = useState({
+    columns: false,
+    imputation: false,
+    encoding: false,
+    scaling: false,
+  });
+
+  const toggleListExpansion = (listName: keyof typeof expandedLists) => {
+    setExpandedLists(prev => ({ ...prev, [listName]: !prev[listName] }));
+  };
 
   const handleColumnDropChange = (column: string, checked: boolean) => {
     const newDroppedColumns = checked
@@ -65,6 +81,11 @@ export function ManualCleanSidebar({
     setConfig({ ...config, scaling: { ...config.scaling, [column]: value } });
   };
 
+  const visibleColumns = expandedLists.columns ? allColumns : allColumns.slice(0, MAX_ITEMS_SHOWN);
+  const visibleMissingValues = expandedLists.imputation ? columnsWithMissingValues : columnsWithMissingValues.slice(0, MAX_ITEMS_SHOWN);
+  const visibleCategorical = expandedLists.encoding ? categoricalColumns : categoricalColumns.slice(0, MAX_ITEMS_SHOWN);
+  const visibleNumeric = expandedLists.scaling ? numericColumns : numericColumns.slice(0, MAX_ITEMS_SHOWN);
+
   return (
     <Card className="rounded-2xl shadow-lg">
       <CardHeader>
@@ -81,69 +102,83 @@ export function ManualCleanSidebar({
         >
           <AccordionItem value="item-1">
             <AccordionTrigger>Step 1: Column Selection</AccordionTrigger>
-            <AccordionContent className="space-y-3 max-h-60 overflow-y-auto p-1">
+            <AccordionContent className="space-y-3 p-1">
               <p className="text-sm text-muted-foreground">
                 Deselect columns to exclude them from the dataset.
               </p>
-              {allColumns.map((col) => (
-                <div key={col} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`col-${col}`} 
-                    checked={!config.columns_to_drop.includes(col)}
-                    onCheckedChange={(checked) => handleColumnDropChange(col, !!checked)}
-                  />
-                  <Label htmlFor={`col-${col}`}>{col}</Label>
-                </div>
-              ))}
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                {visibleColumns.map((col) => (
+                  <div key={col} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`col-${col}`} 
+                      checked={!config.columns_to_drop.includes(col)}
+                      onCheckedChange={(checked) => handleColumnDropChange(col, !!checked)}
+                    />
+                    <Label htmlFor={`col-${col}`}>{col}</Label>
+                  </div>
+                ))}
+              </div>
+              {allColumns.length > MAX_ITEMS_SHOWN && (
+                <Button variant="link" size="sm" className="p-0 h-auto mt-2" onClick={() => toggleListExpansion('columns')}>
+                  {expandedLists.columns ? 'Show Fewer' : `Show all ${allColumns.length} columns...`}
+                </Button>
+              )}
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-2">
             <AccordionTrigger>Step 2: Missing Value Imputation</AccordionTrigger>
-            <AccordionContent className="space-y-4 max-h-60 overflow-y-auto p-1">
+            <AccordionContent className="space-y-4 p-1">
               {columnsWithMissingValues.length > 0 ? (
                 <>
                   <p className="text-sm text-muted-foreground mb-2">
                     Choose a strategy to handle empty or null values.
                   </p>
-                  {columnsWithMissingValues.map((col) => (
-                    <div key={`missing-${col.name}`} className="space-y-2">
-                      <Label>{col.name}</Label>
-                      <Select
-                        value={config.imputation[col.name]}
-                        onValueChange={(value) => handleImputationChange(col.name, value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select imputation strategy" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="remove">Remove Rows</SelectItem>
-                          {col.type === 'numeric' ? (
-                            <>
-                              <SelectItem value="mean">
-                                Impute with Mean
-                              </SelectItem>
-                              <SelectItem value="median">
-                                Impute with Median
-                              </SelectItem>
-                              <SelectItem value="mode">
-                                Impute with Mode
-                              </SelectItem>
-                            </>
-                          ) : (
-                            <>
-                              <SelectItem value="mode">
-                                Impute with Mode
-                              </SelectItem>
-                              <SelectItem value="constant">
-                                Impute with Constant
-                              </SelectItem>
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
+                  <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                    {visibleMissingValues.map((col) => (
+                      <div key={`missing-${col.name}`} className="space-y-2">
+                        <Label>{col.name}</Label>
+                        <Select
+                          value={config.imputation[col.name]}
+                          onValueChange={(value) => handleImputationChange(col.name, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select imputation strategy" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="remove">Remove Rows</SelectItem>
+                            {col.type === 'numeric' ? (
+                              <>
+                                <SelectItem value="mean">
+                                  Impute with Mean
+                                </SelectItem>
+                                <SelectItem value="median">
+                                  Impute with Median
+                                </SelectItem>
+                                <SelectItem value="mode">
+                                  Impute with Mode
+                                </SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="mode">
+                                  Impute with Mode
+                                </SelectItem>
+                                <SelectItem value="constant">
+                                  Impute with Constant
+                                </SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                   {columnsWithMissingValues.length > MAX_ITEMS_SHOWN && (
+                    <Button variant="link" size="sm" className="p-0 h-auto mt-2" onClick={() => toggleListExpansion('imputation')}>
+                        {expandedLists.imputation ? 'Show Fewer' : `Show all ${columnsWithMissingValues.length} columns...`}
+                    </Button>
+                  )}
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
@@ -179,28 +214,35 @@ export function ManualCleanSidebar({
               <AccordionTrigger>
                 Step 4: Categorical Data Encoding
               </AccordionTrigger>
-              <AccordionContent className="space-y-4 max-h-60 overflow-y-auto p-1">
+              <AccordionContent className="space-y-4 p-1">
                 <p className="text-sm text-muted-foreground mb-2">
                   Convert text categories to numerical representations.
                 </p>
-                {categoricalColumns.map((col) => (
-                  <div key={`cat-${col}`} className="space-y-2">
-                    <Label>{col}</Label>
-                    <Select 
-                      value={config.encoding[col]}
-                      onValueChange={(value) => handleEncodingChange(col, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select encoding" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="onehot">One-Hot Encoding</SelectItem>
-                        <SelectItem value="label">Label Encoding</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
+                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                  {visibleCategorical.map((col) => (
+                    <div key={`cat-${col}`} className="space-y-2">
+                      <Label>{col}</Label>
+                      <Select 
+                        value={config.encoding[col]}
+                        onValueChange={(value) => handleEncodingChange(col, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select encoding" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="onehot">One-Hot Encoding</SelectItem>
+                          <SelectItem value="label">Label Encoding</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </div>
+                {categoricalColumns.length > MAX_ITEMS_SHOWN && (
+                    <Button variant="link" size="sm" className="p-0 h-auto mt-2" onClick={() => toggleListExpansion('encoding')}>
+                        {expandedLists.encoding ? 'Show Fewer' : `Show all ${categoricalColumns.length} columns...`}
+                    </Button>
+                )}
               </AccordionContent>
             </AccordionItem>
           )}
@@ -208,28 +250,35 @@ export function ManualCleanSidebar({
           {numericColumns.length > 0 && (
             <AccordionItem value="item-5">
                 <AccordionTrigger>Step 5: Numerical Feature Scaling</AccordionTrigger>
-                <AccordionContent className="space-y-4 max-h-60 overflow-y-auto p-1">
+                <AccordionContent className="space-y-4 p-1">
                 <p className="text-sm text-muted-foreground mb-2">
                     Normalize the range of numerical features.
                 </p>
-                {numericColumns.map((col) => (
-                    <div key={`scale-${col}`} className="space-y-2">
-                        <Label>{col}</Label>
-                        <Select 
-                          value={config.scaling[col]}
-                          onValueChange={(value) => handleScalingChange(col, value)}
-                        >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select scaling" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            <SelectItem value="standard">Standard Scaler</SelectItem>
-                            <SelectItem value="minmax">Min-Max Scaler</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    </div>
-                ))}
+                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                    {visibleNumeric.map((col) => (
+                        <div key={`scale-${col}`} className="space-y-2">
+                            <Label>{col}</Label>
+                            <Select 
+                              value={config.scaling[col]}
+                              onValueChange={(value) => handleScalingChange(col, value)}
+                            >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select scaling" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="standard">Standard Scaler</SelectItem>
+                                <SelectItem value="minmax">Min-Max Scaler</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                    ))}
+                </div>
+                {numericColumns.length > MAX_ITEMS_SHOWN && (
+                    <Button variant="link" size="sm" className="p-0 h-auto mt-2" onClick={() => toggleListExpansion('scaling')}>
+                        {expandedLists.scaling ? 'Show Fewer' : `Show all ${numericColumns.length} columns...`}
+                    </Button>
+                )}
                 </AccordionContent>
             </AccordionItem>
           )}
