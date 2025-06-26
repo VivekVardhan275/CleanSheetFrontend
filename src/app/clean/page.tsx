@@ -227,7 +227,7 @@ export default function CleanPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Data Preview</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 -mt-4">
+            <CardContent className="flex-1 -mt-4 flex flex-col">
               <DataPreviewTable data={data} headers={headers} />
             </CardContent>
           </Card>
